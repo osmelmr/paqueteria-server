@@ -1,3 +1,21 @@
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'STOREKEEPER');
+
+-- CreateTable
+CREATE TABLE "users" (
+    "id" UUID NOT NULL,
+    "email" VARCHAR(255),
+    "username" VARCHAR(100) NOT NULL,
+    "password" VARCHAR(255) NOT NULL,
+    "full_name" VARCHAR(255),
+    "role" "UserRole" NOT NULL DEFAULT 'STOREKEEPER',
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateTable
 CREATE TABLE "guides" (
     "id" UUID NOT NULL,
@@ -75,6 +93,12 @@ CREATE TABLE "package_hbls" (
 
     CONSTRAINT "package_hbls_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "recipients_id_card_key" ON "recipients"("id_card");

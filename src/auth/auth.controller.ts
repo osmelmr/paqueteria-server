@@ -1,0 +1,51 @@
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { AuthService } from './auth.service.js';
+import { LoginDto } from './dto/login.dto.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+
+const REFRESH_COOKIE = 'refresh_token';
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'lax' as const,
+  path: '/auth',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+@Controller('auth')
+export class AuthController {
+  constructor(private auth: AuthService) {}
+
+  @Post('login')
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.auth.login(dto);
+    res.cookie(REFRESH_COOKIE, result.refreshToken, COOKIE_OPTIONS);
+    return { user: result.user, accessToken: result.accessToken };
+  }
+
+  @Post('refresh')
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const raw = req.cookies?.[REFRESH_COOKIE];
+    if (!raw) return res.status(401).json({ message: 'Unauthorized' });
+    const result = await this.auth.refresh(raw);
+    res.cookie(REFRESH_COOKIE, result.refreshToken, COOKIE_OPTIONS);
+    return { accessToken: result.accessToken };
+  }
+
+  @Post('logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const raw = req.cookies?.[REFRESH_COOKIE];
+    if (raw) {
+      await this.auth.logout(raw);
+      res.clearCookie(REFRESH_COOKIE, { path: '/auth' });
+    }
+    return { message: 'Logged out' };
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  profile() {
+    return { message: 'Protected route works' };
+  }
+}

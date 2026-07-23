@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import { Pool } from 'pg';
+import bcrypt from 'bcrypt';
+import crypto from 'node:crypto';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -38,6 +40,12 @@ const RECIPIENT_IDS = {
   '92051800456': UUID(41),
   '85070400789': UUID(42),
 };
+const AGENCY_IDS = {
+  'DHL Cuba': UUID(45),
+  'FedEx Cuba': UUID(46),
+  'Correos Cuba': UUID(47),
+};
+const ADMIN_ID = UUID(90);
 const GUIDE_ID = UUID(50);
 const PACKAGE_IDS = [UUID(60), UUID(61), UUID(62)];
 
@@ -122,13 +130,24 @@ async function main() {
     console.log(rowCount > 0 ? `  Created recipient: ${fullName}` : `  Skipped recipient: ${fullName}`);
   }
 
-  // ── 5. Guide ─────────────────────────────────────
+  // ── 5. Agencies ─────────────────────────────────
+  console.log('Seeding agencies…');
+  for (const [name, id] of Object.entries(AGENCY_IDS)) {
+    const { rowCount } = await pool.query(
+      `INSERT INTO agencies (id, name) VALUES ($1, $2)
+       ON CONFLICT (id) DO NOTHING`,
+      [id, name],
+    );
+    console.log(rowCount > 0 ? `  Created agency: ${name}` : `  Skipped agency: ${name}`);
+  }
+
+  // ── 6. Guide ─────────────────────────────────────
   console.log('Seeding guide…');
   const { rowCount: guideRc } = await pool.query(
-    `INSERT INTO guides (id, external_ref, agency, uploaded_at)
-     VALUES ($1, 'EXT-2026-001', 'DHL Cuba', '2026-07-20T10:00:00Z')
+    `INSERT INTO guides (id, external_ref, agency_id, uploaded_at)
+     VALUES ($1, 'EXT-2026-001', $2, '2026-07-20T10:00:00Z')
      ON CONFLICT (id) DO NOTHING`,
-    [GUIDE_ID],
+    [GUIDE_ID, AGENCY_IDS['DHL Cuba']],
   );
   console.log(guideRc > 0 ? '  Created guide: EXT-2026-001' : '  Skipped guide');
 
@@ -178,17 +197,32 @@ async function main() {
     for (const hbl of p.hbls) {
       await pool.query(
         `INSERT INTO package_hbls (id, package_id, hbl_code, created_at)
-         VALUES (gen_random_uuid(), $1, $2, NOW())
+         VALUES ($1, $2, $3, NOW())
          ON CONFLICT (hbl_code) DO NOTHING`,
-        [id, hbl],
+        [crypto.randomUUID(), id, hbl],
       );
     }
     console.log(`  Created package: ${id} (${p.hbls.join(', ')})`);
   }
 
+  // ── 7. Admin user ─────────────────────────────────
+  console.log('Seeding admin user…');
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+  await pool.query(
+    `INSERT INTO users (id, email, username, password, full_name, role, is_active, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, 'ADMIN', true, NOW(), NOW())
+     ON CONFLICT (username) DO UPDATE
+       SET password = EXCLUDED.password,
+           role = 'ADMIN',
+           is_active = true,
+           updated_at = NOW()`,
+    [ADMIN_ID, 'admin@paqueteria.com', 'admin', hashedPassword, 'Administrador'],
+  );
+
   // ── Summary ──────────────────────────────────────
   const { rows: counts } = await pool.query(`
-    SELECT 'statuses' AS tbl, COUNT(*)::int AS cnt FROM statuses
+    SELECT 'users' AS tbl, COUNT(*)::int AS cnt FROM users
+    UNION ALL SELECT 'statuses', COUNT(*) FROM statuses
     UNION ALL SELECT 'locations', COUNT(*) FROM locations
     UNION ALL SELECT 'provinces', COUNT(*) FROM provinces
     UNION ALL SELECT 'recipients', COUNT(*) FROM recipients

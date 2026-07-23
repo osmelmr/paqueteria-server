@@ -9,7 +9,10 @@ export class GuidesService {
 
   async findAll() {
     return this.prisma.guide.findMany({
-      include: { _count: { select: { packages: true } } },
+      include: {
+        _count: { select: { packages: true } },
+        agency: true,
+      },
       orderBy: { uploadedAt: 'desc' },
     });
   }
@@ -18,6 +21,7 @@ export class GuidesService {
     const guide = await this.prisma.guide.findUnique({
       where: { id },
       include: {
+        agency: true,
         packages: {
           include: {
             hbls: true,
@@ -33,8 +37,11 @@ export class GuidesService {
     return guide;
   }
 
-  async createManual(data: { externalRef: string; agency: string }) {
-    return this.prisma.guide.create({ data });
+  async createManual(data: { externalRef: string; agencyId: string }) {
+    return this.prisma.guide.create({
+      data,
+      include: { agency: true },
+    });
   }
 
   async delete(id: string) {
@@ -42,11 +49,16 @@ export class GuidesService {
     if (!guide) throw new NotFoundException('Guide not found');
 
     return this.prisma.$transaction(async (tx) => {
-      const packages = await tx.package.findMany({ where: { guideId: id }, select: { id: true } });
+      const packages = await tx.package.findMany({
+        where: { guideId: id },
+        select: { id: true },
+      });
       const packageIds = packages.map((p) => p.id);
 
       if (packageIds.length > 0) {
-        await tx.packageHbl.deleteMany({ where: { packageId: { in: packageIds } } });
+        await tx.packageHbl.deleteMany({
+          where: { packageId: { in: packageIds } },
+        });
         await tx.package.deleteMany({ where: { guideId: id } });
       }
 

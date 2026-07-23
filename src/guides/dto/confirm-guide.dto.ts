@@ -7,7 +7,7 @@ export class ConfirmGuideDto {
   externalRef: string;
 
   @IsString()
-  agency: string;
+  agencyId: string;
 
   @IsArray()
   @ValidateNested({ each: true })

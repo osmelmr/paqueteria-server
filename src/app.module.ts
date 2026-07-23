@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module.js';
+import { AgenciesModule } from './agencies/agencies.module.js';
 import { GuidesModule } from './guides/guides.module.js';
 import { LocationsModule } from './locations/locations.module.js';
 import { PackagesModule } from './packages/packages.module.js';
@@ -20,6 +21,7 @@ import { UsersModule } from './users/users.module.js';
     RecipientsModule,
     PackagesModule,
     GuidesModule,
+    AgenciesModule,
   ],
 })
 export class AppModule {}

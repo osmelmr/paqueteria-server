@@ -261,11 +261,24 @@ describe('Business Modules (e2e)', () => {
   });
 
   describe('Guides', () => {
+    let agencyId: string;
+
+    it('POST /agencies — creates a manual agency', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/agencies')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'DHL' })
+        .expect(201);
+
+      expect(res.body.name).toBe('DHL');
+      agencyId = res.body.id;
+    });
+
     it('POST /guides — creates a manual guide', async () => {
       const res = await request(app.getHttpServer())
         .post('/guides')
         .set('Authorization', `Bearer ${token}`)
-        .send({ externalRef: 'REF-001', agency: 'DHL' })
+        .send({ externalRef: 'REF-001', agencyId })
         .expect(201);
 
       expect(res.body.externalRef).toBe('REF-001');

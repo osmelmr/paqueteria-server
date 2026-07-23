@@ -1,14 +1,23 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { ConfirmGuideDto } from './dto/confirm-guide.dto.js';
+import { CreateGuideDto } from './dto/create-guide.dto.js';
 import { UploadGuideDto } from './dto/upload-guide.dto.js';
 import { GuidesService } from './guides.service.js';
 
 @Controller('guides')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class GuidesController {
-  constructor(private guides: GuidesService) {}
+  constructor(private guides: GuidesService) { }
 
   @Get()
   findAll() {
@@ -21,7 +30,7 @@ export class GuidesController {
   }
 
   @Post()
-  create(@Body() dto: { externalRef: string; agency: string }) {
+  create(@Body() dto: CreateGuideDto) {
     return this.guides.createManual(dto);
   }
 

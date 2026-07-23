@@ -78,7 +78,23 @@ pnpm start:dev
 ### Seed de datos
 
 El proyecto incluye un seed automático con las 16 provincias de Cuba, los 6
-estados del paquete y ubicaciones iniciales. Se ejecuta al correr la migración.
+estados del paquete, ubicaciones iniciales, agencias, una guía y paquetes de
+prueba con HBLs.
+
+El seed también crea un usuario admin con credenciales:
+
+- Usuario: `admin`
+- Contraseña: `admin123`
+
+Comandos disponibles:
+
+```bash
+pnpm run seed        # repobla con datos de prueba sin tocar la migración
+pnpm run db:reset    # reinicia la base de datos y luego repuebla todo
+```
+
+Se ejecuta automáticamente si usas la migración de Prisma, o puedes correr
+los comandos anteriores cuando quieras repoblar la base de datos.
 
 ## 📁 Estructura del proyecto
 

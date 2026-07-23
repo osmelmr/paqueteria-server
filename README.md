@@ -1,98 +1,151 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 📦 Paqueteria Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend del **Sistema de Control de Paquetería**, una aplicación diseñada para
+informatizar el flujo completo de gestión de paquetes en una empresa cubana de
+mensajería. Construido con NestJS, Prisma y PostgreSQL, integra inteligencia
+artificial (Google Gemini) para interpretar guías en Excel y mantener trazabilidad
+total de cada bulto, desde su anuncio hasta la entrega.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## ✨ Funcionalidades completadas
 
-## Description
+- ✅ **Autenticación segura** con JWT (access + refresh tokens) y roles (Admin, Almacenero).
+- ✅ **Carga de guías por Excel** – el frontend envía el contenido parseado y el
+  servidor lo procesa mediante IA para extraer datos estructurados (nombre, HBL,
+  peso, provincia…).
+- ✅ **Procesamiento por lotes** de cientos de filas en segundos gracias a la
+  división automática y llamadas optimizadas a Gemini.
+- ✅ **Manejo de múltiples HBL** por paquete físico, incluso cuando un mismo bulto
+  consolida varios envíos.
+- ✅ **Recepción de cargamentos** – desde un archivo Excel de escaneos (offline)
+  se actualiza automáticamente el estado de los paquetes y se detectan **faltantes**
+  y **huérfanos**.
+- ✅ **Ciclo de vida completo** del paquete: *En guía → Recibido en almacén →
+  En ruta → Entregado*. Cada cambio de estado se refleja junto con la ubicación
+  física correspondiente.
+- ✅ **Gestión de entidades auxiliares**: destinatarios, provincias, ubicaciones,
+  estados (CRUD completo con control de acceso por roles).
+- ✅ **Exportación de hojas de ruta** para choferes, filtradas por provincia y
+  estado.
+- ✅ **Dockerizado** – el entorno de desarrollo y producción se levanta con un solo
+  comando.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🧱 Stack tecnológico
 
-## Project setup
+| Capa                | Herramientas                                      |
+|---------------------|---------------------------------------------------|
+| Lenguaje            | TypeScript                                        |
+| Framework           | [NestJS](https://nestjs.com)                      |
+| ORM                 | [Prisma](https://prisma.io)                       |
+| Base de datos       | PostgreSQL                                        |
+| IA                  | [Google Gemini 1.5 Flash](https://ai.google.dev)  |
+| Autenticación       | JWT (jsonwebtoken, bcrypt)                        |
+| Validación          | class-validator, class-transformer                |
+| Contenedores        | Docker, Docker Compose                            |
+| Testing             | Jest (pruebas unitarias y e2e)                    |
 
-```bash
-$ pnpm install
-```
+## 🚀 Levantar el proyecto localmente
 
-## Compile and run the project
+### Requisitos previos
 
-```bash
-# development
-$ pnpm run start
+- Node.js ≥ 20
+- Docker y Docker Compose (o PostgreSQL local)
+- Una API key de [Google Gemini](https://aistudio.google.com/apikey) (gratuita)
 
-# watch mode
-$ pnpm run start:dev
+### Con Docker (recomendado)
 
-# production mode
-$ pnpm run start:prod
-```
+\`\`\`bash
+git clone https://github.com/tuusuario/paqueteria-server.git
+cd paqueteria-server
 
-## Run tests
+# Copiar variables de entorno
+cp .env.example .env
+# Editar .env con tu GEMINI_API_KEY y ajustes de DB
 
-```bash
-# unit tests
-$ pnpm run test
+# Construir y levantar
+docker compose up --build
+\`\`\`
 
-# e2e tests
-$ pnpm run test:e2e
+La API estará disponible en `http://localhost:3000`.
 
-# test coverage
-$ pnpm run test:cov
-```
+### Instalación manual
 
-## Deployment
+\`\`\`bash
+pnpm install
+npx prisma migrate dev
+pnpm start:dev
+\`\`\`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Seed de datos
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+El proyecto incluye un seed automático con las 16 provincias de Cuba, los 6
+estados del paquete y ubicaciones iniciales. Se ejecuta al correr la migración.
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+## 📁 Estructura del proyecto
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+\`\`\`
+src/
+├── auth/            # JWT, guards, roles (Admin / Almacenero)
+├── guides/          # Endpoints y lógica para guías (upload, confirm)
+├── packages/        # CRUD de paquetes, ciclo de vida y búsqueda por HBL
+├── recipients/      # Gestión de destinatarios
+├── provinces/       # Provincias (seed + CRUD)
+├── locations/       # Ubicaciones físicas
+├── statuses/        # Estados del paquete (catálogo)
+├── users/           # Administración de usuarios (solo Admin)
+├── prisma/          # Cliente Prisma y esquema
+└── common/          # Servicios compartidos (IA mapping, parseo Excel en backend)
+\`\`\`
 
-## Resources
+## 🔒 Seguridad y roles
 
-Check out a few resources that may come in handy when working with NestJS:
+- **Almacenero**: acceso completo a la operativa (guías, paquetes, destinatarios,
+  provincias, ubicaciones, estados). Puede modificar cualquier dato del negocio.
+- **Admin**: todo lo anterior más la gestión de usuarios.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Cada endpoint valida el JWT y los permisos mediante guards personalizados.
 
-## Support
+## 🧠 Procesamiento inteligente de guías
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+1. El cliente web convierte el archivo Excel en una lista de strings (celdas
+   separadas por `|`).
+2. El servidor divide esa lista en lotes de 20 filas y envía cada lote a Gemini
+   con un esquema JSON estricto.
+3. Gemini devuelve un array de objetos con los campos extraídos (nombre, HBL,
+   carnet, teléfono, dirección, peso, contenido, provincia, etc.).
+4. El usuario revisa la vista previa y confirma; el sistema guarda la guía,
+   crea/actualiza destinatarios, paquetes y HBLs respetando la unicidad de estos
+   y el tratamiento de huérfanos.
 
-## Stay in touch
+Todo el proceso de carga y mapeo de una guía de 500 filas tarda alrededor de un
+minuto, respetando los límites de la capa gratuita de Gemini.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📦 Recepción offline
 
-## License
+El personal en almacén (sin conexión) escanea los códigos QR y vuelca los HBL en
+un Excel. Al regresar a un punto con internet, se sube ese archivo al sistema y
+el backend cruza automáticamente los códigos con las guías activas, actualizando
+estados y generando informes de faltantes y huérfanos.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 🔮 Próximos pasos
+
+El proyecto sigue en evolución. Algunas mejoras planeadas:
+
+- Aplicación móvil offline con sincronización.
+- Notificaciones en tiempo real (WebSocket) para el seguimiento de paquetes.
+- Dashboard estadístico con métricas de entregas y tiempos.
+
+## 📄 Licencia
+
+Este código es público **solo para evaluación profesional** (portafolio).  
+No está permitido su uso comercial, modificación ni redistribución.  
+Ver [LICENSE](LICENSE) para más detalles.
+
+## 📬 Contacto
+
+**Osmel Medero Rosales**  
+Email: [osmelmr.dev@gmail.com](mailto:osmelmr.dev@gmail.com)  
+Teléfono: +53 63967194
+
+---
+
+© 2026 Osmel Medero Rosales – Todos los derechos reservados.

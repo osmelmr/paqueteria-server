@@ -17,7 +17,7 @@ function normalizePackageInclude(includeHistory = false) {
 
 @Injectable()
 export class PackagesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async findAll(filters: {
     status?: string;

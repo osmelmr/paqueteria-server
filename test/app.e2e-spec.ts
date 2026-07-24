@@ -22,7 +22,9 @@ describe('Business Modules (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.use(cookieParser());
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+    );
     await app.init();
   });
 
@@ -104,7 +106,9 @@ describe('Business Modules (e2e)', () => {
         .get('/locations')
         .set('Authorization', `Bearer ${token}`);
 
-      const guantanamo = all.body.find((l: any) => l.name === 'Almacén Guantánamo');
+      const guantanamo = all.body.find(
+        (l: any) => l.name === 'Almacén Guantánamo',
+      );
       await request(app.getHttpServer())
         .patch(`/locations/${guantanamo.id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -141,7 +145,11 @@ describe('Business Modules (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/recipients')
         .set('Authorization', `Bearer ${token}`)
-        .send({ fullName: 'Juan Pérez', idCard: '12345678901', phone: '555-0101' })
+        .send({
+          fullName: 'Juan Pérez',
+          idCard: '12345678901',
+          phone: '555-0101',
+        })
         .expect(201);
 
       expect(res.body.fullName).toBe('Juan Pérez');
@@ -224,19 +232,25 @@ describe('Business Modules (e2e)', () => {
         .expect(200);
 
       expect(res.body.length).toBeGreaterThanOrEqual(1);
-      expect(res.body[0].hbls.some((h: any) => h.hblCode === 'HBL-001')).toBe(true);
+      expect(res.body[0].hbls.some((h: any) => h.hblCode === 'HBL-001')).toBe(
+        true,
+      );
     });
 
     it('PATCH /packages/:id/status — updates status and location', async () => {
       const allStatuses = await request(app.getHttpServer())
         .get('/statuses')
         .set('Authorization', `Bearer ${token}`);
-      const entregandoStatus = allStatuses.body.find((s: any) => s.name === 'entregando');
+      const entregandoStatus = allStatuses.body.find(
+        (s: any) => s.name === 'entregando',
+      );
 
       const allLocations = await request(app.getHttpServer())
         .get('/locations')
         .set('Authorization', `Bearer ${token}`);
-      const enCamino = allLocations.body.find((l: any) => l.name === 'En camino');
+      const enCamino = allLocations.body.find(
+        (l: any) => l.name === 'En camino',
+      );
 
       const res = await request(app.getHttpServer())
         .patch(`/packages/${packageId}/status`)

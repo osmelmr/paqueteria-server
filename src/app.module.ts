@@ -26,4 +26,4 @@ import { UsersModule } from './users/users.module.js';
     AgenciesModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

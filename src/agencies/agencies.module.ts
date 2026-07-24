@@ -6,4 +6,4 @@ import { AgenciesService } from './agencies.service.js';
   controllers: [AgenciesController],
   providers: [AgenciesService],
 })
-export class AgenciesModule { }
+export class AgenciesModule {}

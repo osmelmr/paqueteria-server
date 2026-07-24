@@ -17,7 +17,7 @@ import { GuidesService } from './guides.service.js';
 @Controller('guides')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class GuidesController {
-  constructor(private guides: GuidesService) { }
+  constructor(private guides: GuidesService) {}
 
   @Get()
   findAll() {

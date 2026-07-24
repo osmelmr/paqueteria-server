@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { CreateAgencyDto } from './dto/create-agency.dto.js';
@@ -8,7 +17,7 @@ import { AgenciesService } from './agencies.service.js';
 @Controller('agencies')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AgenciesController {
-  constructor(private agencies: AgenciesService) { }
+  constructor(private agencies: AgenciesService) {}
 
   @Get()
   findAll() {

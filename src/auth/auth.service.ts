@@ -16,7 +16,9 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({ where: { username: dto.username } });
+    const user = await this.prisma.user.findUnique({
+      where: { username: dto.username },
+    });
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const valid = await bcryptCompare(dto.password, user.password);
@@ -26,7 +28,13 @@ export class AuthService {
     const refreshToken = await this.generateRefreshToken(user.id);
 
     return {
-      user: { id: user.id, email: user.email, username: user.username, fullName: user.fullName, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        role: user.role,
+      },
       accessToken,
       refreshToken,
     };
@@ -34,8 +42,11 @@ export class AuthService {
 
   async refresh(raw: string) {
     const hash = sha256(raw);
-    const stored = await this.prisma.refreshToken.findUnique({ where: { token: hash } });
-    if (!stored || stored.expiresAt < new Date()) throw new UnauthorizedException();
+    const stored = await this.prisma.refreshToken.findUnique({
+      where: { token: hash },
+    });
+    if (!stored || stored.expiresAt < new Date())
+      throw new UnauthorizedException();
 
     const user = await this.prisma.user.findUnique({
       where: { id: stored.userId },
@@ -64,7 +75,11 @@ export class AuthService {
     const raw = crypto.randomBytes(REFRESH_BYTES).toString('hex');
     const hash = sha256(raw);
     await this.prisma.refreshToken.create({
-      data: { token: hash, userId, expiresAt: new Date(Date.now() + REFRESH_EXPIRES_MS) },
+      data: {
+        token: hash,
+        userId,
+        expiresAt: new Date(Date.now() + REFRESH_EXPIRES_MS),
+      },
     });
     return raw;
   }

@@ -53,7 +53,10 @@ export class RecipientsService {
     return this.prisma.recipient.create({ data });
   }
 
-  async update(id: string, data: { fullName?: string; idCard?: string; phone?: string }) {
+  async update(
+    id: string,
+    data: { fullName?: string; idCard?: string; phone?: string },
+  ) {
     await this.findById(id);
     return this.prisma.recipient.update({ where: { id }, data });
   }
@@ -63,7 +66,11 @@ export class RecipientsService {
     await this.prisma.recipient.delete({ where: { id } });
   }
 
-  async upsertByIdCard(data: { fullName: string; idCard: string; phone?: string }) {
+  async upsertByIdCard(data: {
+    fullName: string;
+    idCard: string;
+    phone?: string;
+  }) {
     return this.prisma.recipient.upsert({
       where: { idCard: data.idCard },
       create: data,

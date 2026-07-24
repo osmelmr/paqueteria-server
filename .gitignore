@@ -6,6 +6,8 @@
 /.claude
 /.windsurf
 /db_data
+secret.js
+
 # Logs
 logs
 *.log

@@ -8,8 +8,8 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
-import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateLocationDto } from './dto/create-location.dto.js';
 import { UpdateLocationDto } from './dto/update-location.dto.js';
 import { LocationsService } from './locations.service.js';

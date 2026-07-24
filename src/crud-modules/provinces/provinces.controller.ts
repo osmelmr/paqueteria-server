@@ -8,8 +8,8 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
-import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateProvinceDto } from './dto/create-province.dto.js';
 import { UpdateProvinceDto } from './dto/update-province.dto.js';
 import { ProvincesService } from './provinces.service.js';

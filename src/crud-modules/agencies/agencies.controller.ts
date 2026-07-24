@@ -8,8 +8,8 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
-import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateAgencyDto } from './dto/create-agency.dto.js';
 import { UpdateAgencyDto } from './dto/update-agency.dto.js';
 import { AgenciesService } from './agencies.service.js';

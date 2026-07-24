@@ -15,7 +15,7 @@ export class CreatePackageDto {
 
   @IsOptional()
   @IsString()
-  addressDetail?: string;
+  address?: string;
 
   @IsOptional()
   @IsNumber()
@@ -23,7 +23,7 @@ export class CreatePackageDto {
 
   @IsOptional()
   @IsString()
-  contentDescription?: string;
+  content?: string;
 
   @IsOptional()
   @IsDateString()

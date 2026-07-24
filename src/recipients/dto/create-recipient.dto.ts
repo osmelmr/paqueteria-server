@@ -10,8 +10,4 @@ export class CreateRecipientDto {
   @IsOptional()
   @IsString()
   phone?: string;
-
-  @IsOptional()
-  @IsString()
-  address?: string;
 }

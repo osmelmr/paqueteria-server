@@ -1,6 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
+function normalizePackageInclude(includeHistory = false) {
+  return {
+    hbls: true,
+    recipient: true,
+    province: true,
+    status: true,
+    location: true,
+    guide: true,
+    ...(includeHistory ? { statuses: { orderBy: { createdAt: 'desc' as const } } } : {}),
+  };
+}
+
 @Injectable()
 export class PackagesService {
   constructor(private prisma: PrismaService) {}
@@ -23,22 +35,15 @@ export class PackagesService {
     if (filters.guideId) where.guideId = filters.guideId;
     if (filters.search) {
       where.OR = [
-        { addressDetail: { contains: filters.search, mode: 'insensitive' } },
-        { contentDescription: { contains: filters.search, mode: 'insensitive' } },
+        { address: { contains: filters.search, mode: 'insensitive' } },
+        { content: { contains: filters.search, mode: 'insensitive' } },
         { hbls: { some: { hblCode: { contains: filters.search, mode: 'insensitive' } } } },
       ];
     }
 
     return this.prisma.package.findMany({
       where,
-      include: {
-        hbls: true,
-        recipient: true,
-        province: true,
-        status: true,
-        location: true,
-        guide: true,
-      },
+      include: normalizePackageInclude(true),
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -46,14 +51,7 @@ export class PackagesService {
   async findById(id: string) {
     const pkg = await this.prisma.package.findUnique({
       where: { id },
-      include: {
-        hbls: true,
-        recipient: true,
-        province: true,
-        status: true,
-        location: true,
-        guide: true,
-      },
+      include: normalizePackageInclude(true),
     });
     if (!pkg) throw new NotFoundException('Package not found');
     return pkg;
@@ -64,28 +62,21 @@ export class PackagesService {
       where: { hblCode: hbl },
       include: {
         package: {
-          include: {
-            hbls: true,
-            recipient: true,
-            province: true,
-            status: true,
-            location: true,
-            guide: true,
-          },
+          include: normalizePackageInclude(true),
         },
       },
     });
     if (!packageHbl) throw new NotFoundException('Package not found for this HBL');
-    return packageHbl.package;
+    return packageHbl as any;
   }
 
   async create(data: {
     guideId?: string;
     recipientId?: string;
     provinceId?: string;
-    addressDetail?: string;
+    address?: string;
     weight?: number;
-    contentDescription?: string;
+    content?: string;
     departureDate?: string;
     statusId: string;
     locationId?: string;
@@ -102,6 +93,13 @@ export class PackagesService {
         },
       });
 
+      await tx.packageStatusHistory.create({
+        data: {
+          packageId: pkg.id,
+          statusId: packageData.statusId,
+        },
+      });
+
       if (hbls && hbls.length > 0) {
         await tx.packageHbl.createMany({
           data: hbls.map((hbl) => ({ packageId: pkg.id, hblCode: hbl })),
@@ -110,14 +108,7 @@ export class PackagesService {
 
       return tx.package.findUnique({
         where: { id: pkg.id },
-        include: {
-          hbls: true,
-          recipient: true,
-          province: true,
-          status: true,
-          location: true,
-          guide: true,
-        },
+        include: normalizePackageInclude(true),
       });
     });
   }
@@ -128,9 +119,9 @@ export class PackagesService {
       guideId?: string;
       recipientId?: string;
       provinceId?: string;
-      addressDetail?: string;
+      address?: string;
       weight?: number;
-      contentDescription?: string;
+      content?: string;
       departureDate?: string;
       statusId?: string;
       locationId?: string;
@@ -152,6 +143,15 @@ export class PackagesService {
         },
       });
 
+      if (packageData.statusId) {
+        await tx.packageStatusHistory.create({
+          data: {
+            packageId: id,
+            statusId: packageData.statusId,
+          },
+        });
+      }
+
       if (hbls) {
         await tx.packageHbl.deleteMany({ where: { packageId: id } });
         if (hbls.length > 0) {
@@ -163,14 +163,7 @@ export class PackagesService {
 
       return tx.package.findUnique({
         where: { id },
-        include: {
-          hbls: true,
-          recipient: true,
-          province: true,
-          status: true,
-          location: true,
-          guide: true,
-        },
+        include: normalizePackageInclude(true),
       });
     });
   }
@@ -179,17 +172,23 @@ export class PackagesService {
     const pkg = await this.prisma.package.findUnique({ where: { id } });
     if (!pkg) throw new NotFoundException('Package not found');
 
-    return this.prisma.package.update({
-      where: { id },
-      data: { statusId, locationId },
-      include: {
-        hbls: true,
-        recipient: true,
-        province: true,
-        status: true,
-        location: true,
-        guide: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.package.update({
+        where: { id },
+        data: { statusId, locationId },
+      });
+
+      await tx.packageStatusHistory.create({
+        data: {
+          packageId: updated.id,
+          statusId,
+        },
+      });
+
+      return tx.package.findUniqueOrThrow({
+        where: { id },
+        include: normalizePackageInclude(true),
+      });
     });
   }
 

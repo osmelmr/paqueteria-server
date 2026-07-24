@@ -14,11 +14,4 @@ export class StatusesService {
       where: { name: { equals: name, mode: 'insensitive' } },
     });
   }
-
-  async findByCategory(category: string) {
-    return this.prisma.status.findMany({
-      where: { category },
-      orderBy: { name: 'asc' },
-    });
-  }
 }

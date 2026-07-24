@@ -8,9 +8,9 @@ export class PackageEntryService {
     async createEntry(dto: {
         statusId: string;
         guideRef?: string;
-        addressDetail?: string;
+        address?: string;
         weight?: number;
-        contentDescription?: string;
+        content?: string;
         departureDate?: string;
         isOrphan?: boolean;
         recipient?: { id?: string; data?: Record<string, unknown> };
@@ -64,9 +64,9 @@ export class PackageEntryService {
                     guideId,
                     provinceId,
                     locationId,
-                    addressDetail: dto.addressDetail,
+                    address: dto.address,
                     weight: dto.weight,
-                    contentDescription: dto.contentDescription,
+                    content: dto.content,
                     departureDate: dto.departureDate
                         ? new Date(dto.departureDate)
                         : undefined,

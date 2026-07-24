@@ -31,7 +31,7 @@ export class RecipientsService {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { id: 'desc' },
       }),
       this.prisma.recipient.count({ where }),
     ]);
@@ -49,11 +49,11 @@ export class RecipientsService {
     return this.prisma.recipient.findUnique({ where: { idCard } });
   }
 
-  async create(data: { fullName: string; idCard: string; phone?: string; address?: string }) {
+  async create(data: { fullName: string; idCard: string; phone?: string }) {
     return this.prisma.recipient.create({ data });
   }
 
-  async update(id: string, data: { fullName?: string; idCard?: string; phone?: string; address?: string }) {
+  async update(id: string, data: { fullName?: string; idCard?: string; phone?: string }) {
     await this.findById(id);
     return this.prisma.recipient.update({ where: { id }, data });
   }
@@ -63,11 +63,11 @@ export class RecipientsService {
     await this.prisma.recipient.delete({ where: { id } });
   }
 
-  async upsertByIdCard(data: { fullName: string; idCard: string; phone?: string; address?: string }) {
+  async upsertByIdCard(data: { fullName: string; idCard: string; phone?: string }) {
     return this.prisma.recipient.upsert({
       where: { idCard: data.idCard },
       create: data,
-      update: { fullName: data.fullName, phone: data.phone, address: data.address },
+      update: { fullName: data.fullName, phone: data.phone },
     });
   }
 }

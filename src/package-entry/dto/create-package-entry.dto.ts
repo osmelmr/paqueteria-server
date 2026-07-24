@@ -36,17 +36,15 @@ export class CreatePackageEntryDto {
 
     @IsOptional()
     @IsString()
-    addressDetail?: string;
+  address?: string;
 
-    @IsOptional()
-    @IsNumber()
-    weight?: number;
+  @IsOptional()
+  @IsNumber()
+  weight?: number;
 
-    @IsOptional()
-    @IsString()
-    contentDescription?: string;
-
-    @IsOptional()
+  @IsOptional()
+  @IsString()
+  content?: string;
     @IsDateString()
     departureDate?: string;
 

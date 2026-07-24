@@ -17,7 +17,7 @@ export class LocationsController {
 
   @Post()
   create(@Body() dto: CreateLocationDto) {
-    return this.locations.create(dto.name, dto.type);
+    return this.locations.create(dto.name);
   }
 
   @Patch(':id')

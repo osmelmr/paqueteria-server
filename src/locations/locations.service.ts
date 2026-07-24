@@ -15,11 +15,11 @@ export class LocationsService {
     return location;
   }
 
-  async create(name: string, type: string) {
-    return this.prisma.location.create({ data: { name, type } });
+  async create(name: string) {
+    return this.prisma.location.create({ data: { name } });
   }
 
-  async update(id: string, data: { name?: string; type?: string }) {
+  async update(id: string, data: { name?: string }) {
     await this.findById(id);
     return this.prisma.location.update({ where: { id }, data });
   }

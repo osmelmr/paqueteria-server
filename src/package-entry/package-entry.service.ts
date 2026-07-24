@@ -1,99 +1,68 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { Injectable } from '@nestjs/common';
+import { PackageProcessorService } from './package-processor.service.js';
+import { SinglePackageEntryDto } from './dto/single-package-entry.dto.js';
+
+export interface BatchResult {
+    index: number;
+    packageId?: string;
+    data?: Record<string, unknown>;
+    error?: string;
+}
 
 @Injectable()
 export class PackageEntryService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private readonly packageProcessor: PackageProcessorService,
+    ) { }
 
-    async createEntry(dto: {
-        statusId: string;
-        guideRef?: string;
-        address?: string;
-        weight?: number;
-        content?: string;
-        departureDate?: string;
-        isOrphan?: boolean;
-        recipient?: { id?: string; data?: Record<string, unknown> };
-        guide?: { id?: string; data?: Record<string, unknown> };
-        province?: { id?: string; data?: Record<string, unknown> };
-        location?: { id?: string; data?: Record<string, unknown> };
-        hbls?: Array<{ hblCode: string }>;
-    }) {
-        return this.prisma.$transaction(async (tx: any) => {
-            const status = await tx.status.findUnique({
-                where: { id: dto.statusId },
-            });
-            if (!status) {
-                throw new NotFoundException('Status not found');
-            }
+    async createEntry(dto: SinglePackageEntryDto) {
+        return this.packageProcessor.processPackage(dto);
+    }
 
-            const resolveRelation = async (
-                relation: { id?: string; data?: Record<string, unknown> } | undefined,
-                model: 'recipient' | 'guide' | 'province' | 'location',
-                createData?: Record<string, unknown>,
-            ) => {
-                if (!relation) return null;
+    async processBatch(packages: SinglePackageEntryDto[]) {
+        const successful: BatchResult[] = [];
+        const failed: BatchResult[] = [];
 
-                if (relation.id) {
-                    const existing = await tx[model].findUnique({
-                        where: { id: relation.id },
-                    });
-                    if (!existing) {
-                        throw new NotFoundException(`${model} not found`);
-                    }
-                    return relation.id;
-                }
+        for (let i = 0; i < packages.length; i++) {
+            const item = packages[i];
 
-                if (relation.data) {
-                    const created = await tx[model].create({ data: relation.data });
-                    return created.id;
-                }
+            try {
+                const result = await this.packageProcessor.processPackage(item);
 
-                return null;
-            };
-
-            const recipientId = await resolveRelation(dto.recipient, 'recipient');
-            const guideId = await resolveRelation(dto.guide, 'guide');
-            const provinceId = await resolveRelation(dto.province, 'province');
-            const locationId = await resolveRelation(dto.location, 'location');
-
-            const pkg = await tx.package.create({
-                data: {
-                    statusId: dto.statusId,
-                    recipientId,
-                    guideId,
-                    provinceId,
-                    locationId,
-                    address: dto.address,
-                    weight: dto.weight,
-                    content: dto.content,
-                    departureDate: dto.departureDate
-                        ? new Date(dto.departureDate)
-                        : undefined,
-                    isOrphan: dto.isOrphan ?? false,
-                },
-            });
-
-            if (dto.hbls && dto.hbls.length > 0) {
-                await tx.packageHbl.createMany({
-                    data: dto.hbls.map((hbl) => ({
-                        packageId: pkg.id,
-                        hblCode: hbl.hblCode,
-                    })),
+                successful.push({
+                    index: i,
+                    packageId: result.id,
+                    data: {
+                        id: result.id,
+                        address: result.address,
+                        weight: result.weight,
+                        recipient: result.recipient?.fullName ?? null,
+                        status: result.status?.name ?? null,
+                        hbls: result.hbls.map((h) => h.hblCode),
+                    },
+                });
+            } catch (error) {
+                failed.push({
+                    index: i,
+                    error: (error as Error).message,
+                    data: item as unknown as Record<string, unknown>,
                 });
             }
+        }
 
-            return tx.package.findUnique({
-                where: { id: pkg.id },
-                include: {
-                    hbls: true,
-                    recipient: true,
-                    province: true,
-                    status: true,
-                    location: true,
-                    guide: true,
-                },
-            });
-        });
+        return {
+            summary: {
+                total: packages.length,
+                saved: successful.length,
+                failed: failed.length,
+                successRate:
+                    packages.length > 0
+                        ? `${((successful.length / packages.length) * 100).toFixed(2)}%`
+                        : '0%',
+            },
+            successful,
+            failed,
+            savedIds: successful.map((s) => s.packageId),
+        };
     }
 }

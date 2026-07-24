@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   IsNumber,
-  IsUUID,
   ValidateNested,
 } from 'class-validator';
 
@@ -25,7 +24,7 @@ class NewGuideDto {
   @IsString()
   externalRef: string;
 
-  @IsUUID()
+  @IsString()
   agencyId: string;
 }
 
@@ -40,7 +39,7 @@ class NewLocationDto {
 }
 
 export class SinglePackageEntryDto {
-  @IsUUID()
+  @IsString()
   statusId: string;
 
   @IsOptional()
@@ -64,19 +63,19 @@ export class SinglePackageEntryDto {
   isOrphan?: boolean;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   recipientId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   guideId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   provinceId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   locationId?: string;
 
   @IsOptional()

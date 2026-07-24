@@ -9,13 +9,15 @@ function normalizePackageInclude(includeHistory = false) {
     status: true,
     location: true,
     guide: true,
-    ...(includeHistory ? { statuses: { orderBy: { createdAt: 'desc' as const } } } : {}),
+    ...(includeHistory
+      ? { statuses: { orderBy: { createdAt: 'desc' as const } } }
+      : {}),
   };
 }
 
 @Injectable()
 export class PackagesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll(filters: {
     status?: string;
@@ -30,14 +32,23 @@ export class PackagesService {
     if (filters.status) where.statusId = filters.status;
     if (filters.provinceId) where.provinceId = filters.provinceId;
     if (filters.isOrphan !== undefined) where.isOrphan = filters.isOrphan;
-    if (filters.hbl) where.hbls = { some: { hblCode: { contains: filters.hbl, mode: 'insensitive' } } };
+    if (filters.hbl)
+      where.hbls = {
+        some: { hblCode: { contains: filters.hbl, mode: 'insensitive' } },
+      };
     if (filters.recipientId) where.recipientId = filters.recipientId;
     if (filters.guideId) where.guideId = filters.guideId;
     if (filters.search) {
       where.OR = [
         { address: { contains: filters.search, mode: 'insensitive' } },
         { content: { contains: filters.search, mode: 'insensitive' } },
-        { hbls: { some: { hblCode: { contains: filters.search, mode: 'insensitive' } } } },
+        {
+          hbls: {
+            some: {
+              hblCode: { contains: filters.search, mode: 'insensitive' },
+            },
+          },
+        },
       ];
     }
 
@@ -66,7 +77,8 @@ export class PackagesService {
         },
       },
     });
-    if (!packageHbl) throw new NotFoundException('Package not found for this HBL');
+    if (!packageHbl)
+      throw new NotFoundException('Package not found for this HBL');
     return packageHbl as any;
   }
 
@@ -89,7 +101,9 @@ export class PackagesService {
       const pkg = await tx.package.create({
         data: {
           ...packageData,
-          departureDate: packageData.departureDate ? new Date(packageData.departureDate) : undefined,
+          departureDate: packageData.departureDate
+            ? new Date(packageData.departureDate)
+            : undefined,
         },
       });
 
@@ -139,7 +153,9 @@ export class PackagesService {
         where: { id },
         data: {
           ...packageData,
-          departureDate: packageData.departureDate ? new Date(packageData.departureDate) : undefined,
+          departureDate: packageData.departureDate
+            ? new Date(packageData.departureDate)
+            : undefined,
         },
       });
 

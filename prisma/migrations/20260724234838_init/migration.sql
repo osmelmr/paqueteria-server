@@ -51,8 +51,6 @@ CREATE TABLE "recipients" (
     "full_name" VARCHAR(255) NOT NULL,
     "id_card" VARCHAR(50) NOT NULL,
     "phone" VARCHAR(50),
-    "address" TEXT,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "recipients_pkey" PRIMARY KEY ("id")
 );
@@ -69,16 +67,24 @@ CREATE TABLE "provinces" (
 CREATE TABLE "statuses" (
     "id" UUID NOT NULL,
     "name" VARCHAR(50) NOT NULL,
-    "category" VARCHAR(50) NOT NULL,
 
     CONSTRAINT "statuses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "package_status_history" (
+    "id" UUID NOT NULL,
+    "package_id" UUID NOT NULL,
+    "status_id" UUID NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "package_status_history_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "locations" (
     "id" UUID NOT NULL,
     "name" VARCHAR(100) NOT NULL,
-    "type" VARCHAR(50) NOT NULL,
 
     CONSTRAINT "locations_pkey" PRIMARY KEY ("id")
 );
@@ -89,9 +95,9 @@ CREATE TABLE "packages" (
     "guide_id" UUID,
     "recipient_id" UUID,
     "province_id" UUID,
-    "address_detail" TEXT,
+    "address" TEXT,
     "weight" DECIMAL(10,2),
-    "content_description" TEXT,
+    "content" TEXT,
     "departure_date" DATE,
     "arrival_date" DATE,
     "status_id" UUID NOT NULL,
@@ -108,7 +114,6 @@ CREATE TABLE "package_hbls" (
     "id" UUID NOT NULL,
     "package_id" UUID NOT NULL,
     "hbl_code" VARCHAR(100) NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "package_hbls_pkey" PRIMARY KEY ("id")
 );
@@ -129,10 +134,19 @@ CREATE INDEX "refresh_tokens_token_idx" ON "refresh_tokens"("token");
 CREATE UNIQUE INDEX "agencies_name_key" ON "agencies"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "guides_external_ref_key" ON "guides"("external_ref");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "recipients_id_card_key" ON "recipients"("id_card");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "provinces_name_key" ON "provinces"("name");
+
+-- CreateIndex
+CREATE INDEX "package_status_history_package_id_idx" ON "package_status_history"("package_id");
+
+-- CreateIndex
+CREATE INDEX "package_status_history_status_id_idx" ON "package_status_history"("status_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "package_hbls_package_id_hbl_code_key" ON "package_hbls"("package_id", "hbl_code");
@@ -145,6 +159,12 @@ ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "guides" ADD CONSTRAINT "guides_agency_id_fkey" FOREIGN KEY ("agency_id") REFERENCES "agencies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "package_status_history" ADD CONSTRAINT "package_status_history_package_id_fkey" FOREIGN KEY ("package_id") REFERENCES "packages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "package_status_history" ADD CONSTRAINT "package_status_history_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "statuses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "packages" ADD CONSTRAINT "packages_guide_id_fkey" FOREIGN KEY ("guide_id") REFERENCES "guides"("id") ON DELETE SET NULL ON UPDATE CASCADE;

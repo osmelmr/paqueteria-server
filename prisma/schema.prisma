@@ -57,7 +57,7 @@ model Agency {
 
 model Guide {
   id           String    @id @default(uuid()) @db.Uuid
-  externalRef  String    @map("external_ref") @db.VarChar(255)
+  externalRef  String   @unique @map("external_ref") @db.VarChar(255)
   agencyId     String    @map("agency_id") @db.Uuid
   uploadedAt   DateTime  @default(now()) @map("uploaded_at") @db.Timestamptz()
   agency       Agency    @relation(fields: [agencyId], references: [id])
@@ -88,7 +88,7 @@ model Province {
 // ── STATUSES (estados) ──────────────────────────────
 model Status {
   id              String                 @id @default(uuid()) @db.Uuid
-  name            String                 @db.VarChar(50)
+  name            String                 @unique @db.VarChar(50)
   packages        Package[]
   packageStatuses PackageStatusHistory[]
 
@@ -112,7 +112,7 @@ model PackageStatusHistory {
 // ── LOCATIONS (ubicaciones) ─────────────────────────
 model Location {
   id       String    @id @default(uuid()) @db.Uuid
-  name     String    @db.VarChar(100)
+  name     String    @unique @db.VarChar(100)
   packages Package[]
 
   @@map("locations")

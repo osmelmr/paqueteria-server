@@ -40,7 +40,7 @@ class NewLocationDto {
 
 export class SinglePackageEntryDto {
   @IsString()
-  statusId: string;
+  statusId!: string;
 
   @IsOptional()
   @IsString()
@@ -60,7 +60,7 @@ export class SinglePackageEntryDto {
 
   @IsOptional()
   @IsBoolean()
-  isOrphan?: boolean;
+  isOrphan?: boolean | undefined;
 
   @IsOptional()
   @IsString()
@@ -68,7 +68,7 @@ export class SinglePackageEntryDto {
 
   @IsOptional()
   @IsString()
-  guideId?: string;
+  guideId?: string | null;
 
   @IsOptional()
   @IsString()
@@ -76,7 +76,7 @@ export class SinglePackageEntryDto {
 
   @IsOptional()
   @IsString()
-  locationId?: string;
+  locationId?: string | undefined;
 
   @IsOptional()
   @ValidateNested()

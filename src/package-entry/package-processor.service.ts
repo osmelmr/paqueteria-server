@@ -9,7 +9,7 @@ export interface ProcessPackageInput {
   departureDate?: string;
   isOrphan?: boolean;
   recipientId?: string;
-  guideId?: string;
+  guideId?: string | null;
   provinceId?: string;
   locationId?: string;
   newRecipient?: {
@@ -17,10 +17,7 @@ export interface ProcessPackageInput {
     idCard: string;
     phone?: string;
   };
-  newGuide?: {
-    externalRef: string;
-    agencyId: string;
-  };
+  // newGuide ha sido eliminado
   newProvince?: {
     name: string;
   };
@@ -80,6 +77,7 @@ export class PackageProcessorService {
     input: ProcessPackageInput,
   ): Promise<ProcessPackageResult> {
     return this.prisma.$transaction(async (tx: any) => {
+      // Validar status
       const status = await tx.status.findUnique({
         where: { id: input.statusId },
       });
@@ -89,6 +87,7 @@ export class PackageProcessorService {
         );
       }
 
+      // Resolver Recipient
       let recipientId: string | null = input.recipientId ?? null;
       if (!recipientId && input.newRecipient) {
         const created = await tx.recipient.create({ data: input.newRecipient });
@@ -104,25 +103,18 @@ export class PackageProcessorService {
         }
       }
 
-      let guideId: string | null = input.guideId ?? null;
-      if (!guideId && input.newGuide) {
-        const agency = await tx.agency.findUnique({
-          where: { id: input.newGuide.agencyId },
+      // Resolver Guide (solo validación, nunca se crea aquí)
+      const guideId: string | null = input.guideId ?? null;
+      if (guideId) {
+        const existing = await tx.guide.findUnique({
+          where: { id: guideId },
         });
-        if (!agency) {
-          throw new NotFoundException(
-            `Agency with id "${input.newGuide.agencyId}" not found`,
-          );
-        }
-        const created = await tx.guide.create({ data: input.newGuide });
-        guideId = created.id;
-      } else if (guideId) {
-        const existing = await tx.guide.findUnique({ where: { id: guideId } });
         if (!existing) {
           throw new NotFoundException(`Guide with id "${guideId}" not found`);
         }
       }
 
+      // Resolver Province
       let provinceId: string | null = input.provinceId ?? null;
       if (!provinceId && input.newProvince) {
         const created = await tx.province.create({ data: input.newProvince });
@@ -138,6 +130,7 @@ export class PackageProcessorService {
         }
       }
 
+      // Resolver Location
       let locationId: string | null = input.locationId ?? null;
       if (!locationId && input.newLocation) {
         const created = await tx.location.create({ data: input.newLocation });
@@ -153,6 +146,7 @@ export class PackageProcessorService {
         }
       }
 
+      // Crear Package
       const pkg = await tx.package.create({
         data: {
           statusId: input.statusId,
@@ -170,6 +164,7 @@ export class PackageProcessorService {
         },
       });
 
+      // Asociar HBLs
       if (input.hblCodes && input.hblCodes.length > 0) {
         await tx.packageHbl.createMany({
           data: input.hblCodes.map((code) => ({
@@ -180,6 +175,7 @@ export class PackageProcessorService {
         });
       }
 
+      // Historial de estado
       await tx.packageStatusHistory.create({
         data: {
           packageId: pkg.id,
@@ -187,6 +183,7 @@ export class PackageProcessorService {
         },
       });
 
+      // Devolver paquete con relaciones
       return tx.package.findUnique({
         where: { id: pkg.id },
         include: {

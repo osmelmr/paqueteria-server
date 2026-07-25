@@ -25,14 +25,22 @@ export class EntityResolverService {
 
     const normalizedName = this.normalizeText(name);
 
-    // Buscar o crear usando upsert (evita duplicados)
-    const province = await this.prisma.province.upsert({
-      where: { name: normalizedName },
-      update: {}, // No actualiza nada, solo lo encuentra
-      create: { name: normalizedName },
-    });
+    // Obtener todas las provincias para comparar nombres normalizados
+    const provinces = await this.prisma.province.findMany();
+    // Buscar una provincia cuyo nombre normalizado coincida con normalizedName
+    const found = provinces.find(
+      (p) => this.normalizeText(p.name) === normalizedName,
+    );
 
-    return province.id;
+    if (found) {
+      return found.id;
+    }
+
+    // Si no existe, crear una nueva con el nombre normalizado
+    const newProvince = await this.prisma.province.create({
+      data: { name: normalizedName },
+    });
+    return newProvince.id;
   }
 
   async resolveRecipient(

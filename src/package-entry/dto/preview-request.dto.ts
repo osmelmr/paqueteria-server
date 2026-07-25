@@ -1,30 +1,29 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsBoolean,
-  IsOptional,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsBoolean, IsOptional } from 'class-validator';
 
 export class PreviewRequestDto {
   @IsString()
   @IsNotEmpty()
-  excelText: string;
+  excelText!: string;
 
   @IsString()
   @IsNotEmpty()
-  statusId: string;
+  statusId!: string;
 
   @IsString()
   @IsNotEmpty()
-  locationId: string;
+  locationId?: string;
 
   @IsString()
   @IsNotEmpty()
-  agencyId: string;
+  agencyId?: string;
 
   @IsString()
   @IsNotEmpty()
-  externalRef: string;
+  externalRef?: string;
+
+  @IsString()
+  @IsOptional()
+  guideId?: string;
 
   @IsBoolean()
   @IsOptional()

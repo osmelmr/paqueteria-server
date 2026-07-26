@@ -5,7 +5,11 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class UpdateStatusService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async updateStatusByBulk(hbls: string[], statusId?: string, locationId?: string) {
+  async updateStatusByBulk(
+    hbls: string[],
+    statusId?: string,
+    locationId?: string,
+  ) {
     /*
     este servicio debe encargarse de actualizar el estado y la localizacion de los paquetes que se encuentren en la base de datos, a partir de los hbls que se le pasen como parametro.
     Para ello, debe buscar en la base de datos los paquetes que tengan un hbl que se encuentre en el array de hbls, y actualizar su estado y localizacion a partir de la informacion que se encuentra en la tabla de estados y localizaciones.
@@ -46,7 +50,10 @@ export class UpdateStatusService {
       if (!location) {
         return {
           success: [],
-          failed: hbls.map((hbl) => ({ hbl, error: 'Ubicacion no encontrada' })),
+          failed: hbls.map((hbl) => ({
+            hbl,
+            error: 'Ubicacion no encontrada',
+          })),
         };
       }
     }

@@ -1,13 +1,15 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
 import { BusinessService } from './business.service.js';
 import { BulkAiEntities } from './dto/business-ia-entity.dto.js';
 import { UpdateStatusService } from './update-status.service.js';
+import { PackageAlertService } from './package-alert.service.js';
 
 @Controller('business')
 export class BusinessController {
   constructor(
     private readonly businessService: BusinessService,
     private readonly updateStatusService: UpdateStatusService,
+    private readonly packageAlertService: PackageAlertService,
   ) {}
 
   @Post('process-bulk-ai')
@@ -24,5 +26,28 @@ export class BusinessController {
       body.statusId,
       body.locationId,
     );
+  }
+
+  @Patch('packages/:id/resolve-alert')
+  async resolveAlert(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      guideId?: string;
+      recipientId?: string;
+      provinceId?: string;
+      address?: string;
+      weight?: number;
+      content?: string;
+      arrivalDate?: string;
+      statusId?: string;
+      locationId?: string;
+      isOrphan?: boolean;
+      anotations?: string;
+      alertDescription?: string;
+      hbls?: string[];
+    },
+  ) {
+    return this.packageAlertService.resolveAlert(id, body);
   }
 }

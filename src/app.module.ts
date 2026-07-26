@@ -13,7 +13,7 @@ import { StatusesModule } from './crud-modules/statuses/statuses.module.js';
 import { UsersModule } from './crud-modules/users/users.module.js';
 import { CommonModule } from './common/common.module.js';
 import { BusinessModule } from './business/business.module.js';
-import { AiModule } from './ai/ai.module';
+import { AiModule } from './ai/ai.module.js';
 
 @Module({
   imports: [

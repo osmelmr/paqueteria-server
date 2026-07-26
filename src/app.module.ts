@@ -3,7 +3,6 @@ import { AuthModule } from './auth/auth.module.js';
 import { AgenciesModule } from './crud-modules/agencies/agencies.module.js';
 import { GuidesModule } from './crud-modules/guides/guides.module.js';
 import { LocationsModule } from './crud-modules/locations/locations.module.js';
-import { PackageEntryModule } from './package-entry/package-entry.module.js';
 import { PackagesModule } from './crud-modules/packages/packages.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProvincesModule } from './crud-modules/provinces/provinces.module.js';
@@ -25,7 +24,6 @@ import { AiModule } from './ai/ai.module.js';
     LocationsModule,
     RecipientsModule,
     PackagesModule,
-    PackageEntryModule,
     GuidesModule,
     AgenciesModule,
     CommonModule,

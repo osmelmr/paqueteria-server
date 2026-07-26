@@ -1,8 +1,7 @@
 import {
   IsArray,
   IsBoolean,
-  IsDate,
-  IsDecimal,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -18,17 +17,17 @@ export class BusinessIaEntity {
 
   @IsString()
   @IsOptional()
-  adress?: string;
+  address?: string;
 
   @IsString()
   @IsOptional()
   content?: string;
 
-  @IsDecimal()
+  @IsNumber()
   @IsOptional()
   weight?: number;
 
-  @IsDate()
+  @IsString()
   @IsOptional()
   arrivalDate?: string;
 
@@ -48,6 +47,7 @@ export class BusinessIaEntity {
 
   @IsArray()
   @IsString({ each: true })
+  @IsOptional()
   hblCodes!: string[];
 }
 

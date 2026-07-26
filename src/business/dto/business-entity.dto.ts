@@ -9,7 +9,7 @@ import {
 
 export class BusinessEntity {
   @IsString()
-  statusId?: string;
+  statusId!: string;
 
   @IsString()
   agencyId!: string;
@@ -43,7 +43,7 @@ export class BusinessEntity {
   // no validar
   @IsString()
   @IsOptional()
-  adress?: string;
+  address?: string;
 
   @IsString()
   @IsOptional()
@@ -106,7 +106,7 @@ export class BusinessManualEntity {
   // no validar
   @IsString()
   @IsOptional()
-  adress?: string;
+  address?: string;
 
   @IsString()
   @IsOptional()

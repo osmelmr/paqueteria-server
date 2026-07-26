@@ -172,7 +172,7 @@ export class BusinessService {
       }
     }
 
-    packageData.address = entity.adress;
+    packageData.address = entity.address;
     packageData.content = entity.content;
     packageData.weight = entity.weight;
     if (entity.isOrphan !== undefined) packageData.isOrphan = entity.isOrphan;
@@ -290,7 +290,7 @@ y como ambos servicios pueden procesar de lugares diferentes es mejor que ambos 
       entity.locationId = locationId;
       entity.province = pkg.province;
       entity.municipe = pkg.municipe;
-      entity.adress = pkg.adress;
+      entity.address = pkg.address;
       entity.content = pkg.content;
       entity.weight = pkg.weight;
       entity.arrivalDate = pkg.arrivalDate;

@@ -13,7 +13,7 @@ import { StatusesModule } from './crud-modules/statuses/statuses.module.js';
 import { UsersModule } from './crud-modules/users/users.module.js';
 import { CommonModule } from './common/common.module.js';
 import { BusinessModule } from './business/business.module.js';
-import { AimoduleModule } from './aimodule/aimodule.module.js';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -30,8 +30,8 @@ import { AimoduleModule } from './aimodule/aimodule.module.js';
     AgenciesModule,
     CommonModule,
     BusinessModule,
-    AimoduleModule,
     MunicipesModule,
+    AiModule,
   ],
 })
 export class AppModule {}

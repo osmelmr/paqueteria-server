@@ -136,6 +136,9 @@ model Package {
   address            String?      @map("address") @db.Text
   weight             Decimal?     @db.Decimal(10, 2)
   content            String?      @map("content") @db.Text
+  anotations         String?      @map("anotations") @db.Text
+  alert              Boolean?     @default(false) @db.Boolean
+  alertDescription   String?      @map("alert_description") @db.Text
 
   arrivalDate        DateTime?    @map("arrival_date") @db.Date
 

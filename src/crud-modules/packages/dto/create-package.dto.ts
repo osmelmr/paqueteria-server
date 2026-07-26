@@ -48,6 +48,18 @@ export class CreatePackageDto {
   isOrphan?: boolean;
 
   @IsOptional()
+  @IsString()
+  anotations?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  alert?: boolean;
+
+  @IsOptional()
+  @IsString()
+  alertDescription?: string;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   hbls?: string[];

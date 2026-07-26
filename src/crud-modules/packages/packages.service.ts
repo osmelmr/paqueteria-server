@@ -93,6 +93,9 @@ export class PackagesService {
     statusId: string;
     locationId?: string;
     isOrphan?: boolean;
+    anotations?: string;
+    alert?: boolean;
+    alertDescription?: string;
     hbls?: string[];
   }) {
     const { hbls, ...packageData } = data;
@@ -140,6 +143,9 @@ export class PackagesService {
       statusId?: string;
       locationId?: string;
       isOrphan?: boolean;
+      anotations?: string;
+      alert?: boolean;
+      alertDescription?: string;
       hbls?: string[];
     },
   ) {

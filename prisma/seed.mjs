@@ -5,7 +5,6 @@ import crypto from 'node:crypto';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-// ── Fixed UUIDs (valid hex format, 8-4-4-4-12) ─────
 const UUID = (n) => {
   const h = n.toString(16).padStart(8, '0');
   return `${h}-0000-0000-0000-000000000000`;
@@ -52,44 +51,31 @@ const PACKAGE_IDS = [UUID(60), UUID(61), UUID(62)];
 async function main() {
   // ── 1. Statuses ──────────────────────────────────
   console.log('Seeding statuses…');
-  const statusData = [
-    ['entregando',  'en_camino'],
-    ['trasladando', 'traslado'],
-    ['almacenado',  'almacen'],
-    ['entregado',   'entregado'],
-    ['perdido',     'perdido'],
-  ];
-  for (const [name, category] of statusData) {
+  const statusNames = ['entregando', 'trasladando', 'almacenado', 'entregado', 'perdido'];
+  for (const name of statusNames) {
     const id = STATUS_IDS[name];
     const { rowCount } = await pool.query(
-      `INSERT INTO statuses (id, name, category) VALUES ($1, $2, $3)
+      `INSERT INTO statuses (id, name) VALUES ($1, $2)
        ON CONFLICT (id) DO NOTHING`,
-      [id, name, category],
+      [id, name],
     );
     console.log(rowCount > 0 ? `  Created status: ${name}` : `  Skipped status: ${name}`);
   }
 
   // ── 2. Locations ─────────────────────────────────
   console.log('Seeding locations…');
-  const locationData = [
-    ['En camino',                 'en_camino'],
-    ['Desde almacén hasta almacén', 'traslado'],
-    ['Desde recibo hasta almacén',  'traslado'],
-    ['Almacén Habana',             'almacen'],
-    ['Almacén Bayamo',             'almacen'],
-    ['Almacén Santiago de Cuba',   'almacen'],
-    ['Almacén Santa Clara',        'almacen'],
-    ['Almacén Camagüey',           'almacen'],
-    ['Almacén Holguín',            'almacen'],
-    ['Entregado al cliente',       'cliente'],
-    ['Desconocido',                'desconocido'],
+  const locationNames = [
+    'En camino', 'Desde almacén hasta almacén', 'Desde recibo hasta almacén',
+    'Almacén Habana', 'Almacén Bayamo', 'Almacén Santiago de Cuba',
+    'Almacén Santa Clara', 'Almacén Camagüey', 'Almacén Holguín',
+    'Entregado al cliente', 'Desconocido',
   ];
-  for (const [name, type] of locationData) {
+  for (const name of locationNames) {
     const id = LOCATION_IDS[name];
     const { rowCount } = await pool.query(
-      `INSERT INTO locations (id, name, type) VALUES ($1, $2, $3)
+      `INSERT INTO locations (id, name) VALUES ($1, $2)
        ON CONFLICT (id) DO NOTHING`,
-      [id, name, type],
+      [id, name],
     );
     console.log(rowCount > 0 ? `  Created location: ${name}` : `  Skipped location: ${name}`);
   }
@@ -97,11 +83,7 @@ async function main() {
   // ── 3. Provinces ─────────────────────────────────
   console.log('Seeding provinces…');
   for (const [name] of [
-    ['La Habana'],
-    ['Santiago de Cuba'],
-    ['Holguín'],
-    ['Camagüey'],
-    ['Granma'],
+    ['La Habana'], ['Santiago de Cuba'], ['Holguín'], ['Camagüey'], ['Granma'],
   ]) {
     const id = PROVINCE_IDS[name];
     const { rowCount } = await pool.query(
@@ -115,17 +97,17 @@ async function main() {
   // ── 4. Recipients ────────────────────────────────
   console.log('Seeding recipients…');
   const recipientData = [
-    ['María García',     '87031200123', '555-1001', 'Calle 23 #456, Vedado, La Habana'],
-    ['Carlos Martínez',  '92051800456', '555-2002', 'Av. Jesús Menéndez #123, Bayamo'],
-    ['Ana Rodríguez',    '85070400789', '555-3003', 'Calle Enramadas #789, Santiago de Cuba'],
+    ['María García',     '87031200123', '555-1001'],
+    ['Carlos Martínez',  '92051800456', '555-2002'],
+    ['Ana Rodríguez',    '85070400789', '555-3003'],
   ];
-  for (const [fullName, idCard, phone, address] of recipientData) {
+  for (const [fullName, idCard, phone] of recipientData) {
     const id = RECIPIENT_IDS[idCard];
     const { rowCount } = await pool.query(
-      `INSERT INTO recipients (id, full_name, id_card, phone, address, created_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())
+      `INSERT INTO recipients (id, full_name, id_card, phone)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT (id) DO NOTHING`,
-      [id, fullName, idCard, phone, address],
+      [id, fullName, idCard, phone],
     );
     console.log(rowCount > 0 ? `  Created recipient: ${fullName}` : `  Skipped recipient: ${fullName}`);
   }
@@ -151,43 +133,40 @@ async function main() {
   );
   console.log(guideRc > 0 ? '  Created guide: EXT-2026-001' : '  Skipped guide');
 
-  // ── 6. Packages with HBLs ────────────────────────
+  // ── 7. Packages ──────────────────────────────────
   console.log('Seeding packages…');
   const packages = [
     {
       idx: 0, recipientCard: '87031200123', provinceName: 'La Habana',
-      address: 'Calle 23 #456, Vedado',
       weight: 3.5, content: 'Ropa y calzado',
       status: 'almacenado', location: 'Almacén Habana',
       hbls: ['HBL-23-001', 'HBL-23-002'],
-      departure: '2026-07-18',
+      arrival: '2026-07-18',
     },
     {
       idx: 1, recipientCard: '92051800456', provinceName: 'Santiago de Cuba',
-      address: 'Av. Jesús Menéndez #123',
       weight: 7.2, content: 'Electrodomésticos',
       status: 'entregando', location: 'En camino',
       hbls: ['HBL-23-003'],
-      departure: '2026-07-19',
+      arrival: '2026-07-19',
     },
     {
       idx: 2, recipientCard: '85070400789', provinceName: 'Holguín',
-      address: 'Calle Enramadas #789',
       weight: 1.8, content: 'Documentos y medicinas',
       status: 'trasladando', location: 'Desde recibo hasta almacén',
       hbls: ['HBL-23-004', 'HBL-23-005'],
-      departure: '2026-07-20',
+      arrival: '2026-07-20',
     },
   ];
   for (const p of packages) {
     const id = PACKAGE_IDS[p.idx];
     const { rowCount } = await pool.query(
-      `INSERT INTO packages (id, guide_id, recipient_id, province_id, address_detail,
-        weight, content_description, departure_date, status_id, location_id, is_orphan, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, $9, $10, false, NOW(), NOW())
+      `INSERT INTO packages (id, guide_id, recipient_id, province_id,
+        weight, content, arrival_date, status_id, location_id, is_orphan, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, false, NOW(), NOW())
        ON CONFLICT (id) DO NOTHING`,
       [id, GUIDE_ID, RECIPIENT_IDS[p.recipientCard], PROVINCE_IDS[p.provinceName],
-       p.address, p.weight, p.content, p.departure,
+       p.weight, p.content, p.arrival,
        STATUS_IDS[p.status], LOCATION_IDS[p.location]],
     );
     if (rowCount === 0) {
@@ -196,8 +175,8 @@ async function main() {
     }
     for (const hbl of p.hbls) {
       await pool.query(
-        `INSERT INTO package_hbls (id, package_id, hbl_code, created_at)
-         VALUES ($1, $2, $3, NOW())
+        `INSERT INTO package_hbls (id, package_id, hbl_code)
+         VALUES ($1, $2, $3)
          ON CONFLICT (hbl_code) DO NOTHING`,
         [crypto.randomUUID(), id, hbl],
       );
@@ -205,7 +184,7 @@ async function main() {
     console.log(`  Created package: ${id} (${p.hbls.join(', ')})`);
   }
 
-  // ── 7. Admin user ─────────────────────────────────
+  // ── 8. Admin user ────────────────────────────────
   console.log('Seeding admin user…');
   const hashedPassword = await bcrypt.hash('admin123', 10);
   await pool.query(
@@ -218,6 +197,7 @@ async function main() {
            updated_at = NOW()`,
     [ADMIN_ID, 'admin@paqueteria.com', 'admin', hashedPassword, 'Administrador'],
   );
+  console.log('  Created/updated admin user (admin / admin123)');
 
   // ── Summary ──────────────────────────────────────
   const { rows: counts } = await pool.query(`

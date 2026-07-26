@@ -60,6 +60,7 @@ export class AiClientService {
       - "idCard": carnet de identidad (string)
       - "phone": teléfono (string)
       - "province": nombre de la provincia (string)
+      - "municipe": nombre del municipio (string)
       - "departureDate": fecha de salida en formato YYYY-MM-DD (string)
       - "hblCodes": arreglo de códigos HBL (array de strings)
       - "weight": peso en kg (número)
@@ -80,6 +81,7 @@ export class AiClientService {
             "idCard": "12345678901",
             "phone": "555555555",
             "province": "La Habana",
+            "municipe": "Cotorro",
             "departureDate": "2026-07-24",
             "hblCodes": ["ABC123"],
             "weight": 33.5
@@ -87,6 +89,12 @@ export class AiClientService {
         ]
       }
       Si algún campo no se encuentra, usa null.
+      Anotaciones q te podrian ayudar a identificar un campo:
+      el numero de telefono es de cuba siempre
+      consejos para identificar el hbl y diferenciarlo de otro numero:
+      en ocaciones esta entre [] corcetes
+      en ocaciones comienza por CMseguido de numeros y una letra al final ya sea cm o Cm cM o CM y con o sin letra al final
+      por lo general la gran mayoria de elementos del resto de la columna tienen una de estas formas
     `;
   }
 }

@@ -1,9 +1,8 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 import { NormalizeName } from '../../../common/decorators/normalze-name.decorator.js';
 
-export class UpdateLocationDto {
-  @IsOptional()
+export class UpdateMunicipeDto {
   @IsString()
   @NormalizeName()
-  name?: string;
+  name!: string;
 }

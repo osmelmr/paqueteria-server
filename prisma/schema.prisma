@@ -69,8 +69,8 @@ model Guide {
 // ── RECIPIENTS (destinatarios) ──────────────────────
 model Recipient {
   id        String    @id @default(uuid()) @db.Uuid
-  fullName  String    @map("full_name") @db.VarChar(255)
-  idCard    String    @unique @map("id_card") @db.VarChar(50)
+  fullName  String?    @map("full_name") @db.VarChar(255)
+  idCard    String?    @unique @map("id_card") @db.VarChar(50)
   phone     String?   @db.VarChar(50)
   packages  Package[]
 
@@ -83,6 +83,13 @@ model Province {
   name     String    @unique @db.VarChar(100)
   packages Package[]
   @@map("provinces")
+}
+
+model Municipe {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String    @unique @db.VarChar(100)
+  packages Package[]
+  @@map("municipes")
 }
 
 // ── STATUSES (estados) ──────────────────────────────
@@ -124,11 +131,12 @@ model Package {
   guideId            String?      @map("guide_id") @db.Uuid
   recipientId        String?      @map("recipient_id") @db.Uuid
   provinceId         String?      @map("province_id") @db.Uuid
+  municipeId         String?      @map("municipe_id") @db.Uuid
+
   address            String?      @map("address") @db.Text
   weight             Decimal?     @db.Decimal(10, 2)
   content            String?      @map("content") @db.Text
 
-  departureDate      DateTime?    @map("departure_date") @db.Date
   arrivalDate        DateTime?    @map("arrival_date") @db.Date
 
   statusId           String       @map("status_id") @db.Uuid
@@ -140,6 +148,7 @@ model Package {
   guide     Guide?      @relation(fields: [guideId], references: [id])
   recipient Recipient?  @relation(fields: [recipientId], references: [id])
   province  Province?   @relation(fields: [provinceId], references: [id])
+  municipe  Municipe?   @relation(fields: [municipeId], references: [id])
   status    Status      @relation(fields: [statusId], references: [id])
   location  Location?   @relation(fields: [locationId], references: [id])
   hbls      PackageHbl[]

@@ -48,8 +48,8 @@ CREATE TABLE "guides" (
 -- CreateTable
 CREATE TABLE "recipients" (
     "id" UUID NOT NULL,
-    "full_name" VARCHAR(255) NOT NULL,
-    "id_card" VARCHAR(50) NOT NULL,
+    "full_name" VARCHAR(255),
+    "id_card" VARCHAR(50),
     "phone" VARCHAR(50),
 
     CONSTRAINT "recipients_pkey" PRIMARY KEY ("id")
@@ -61,6 +61,14 @@ CREATE TABLE "provinces" (
     "name" VARCHAR(100) NOT NULL,
 
     CONSTRAINT "provinces_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "municipes" (
+    "id" UUID NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+
+    CONSTRAINT "municipes_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -95,10 +103,10 @@ CREATE TABLE "packages" (
     "guide_id" UUID,
     "recipient_id" UUID,
     "province_id" UUID,
+    "municipe_id" UUID,
     "address" TEXT,
     "weight" DECIMAL(10,2),
     "content" TEXT,
-    "departure_date" DATE,
     "arrival_date" DATE,
     "status_id" UUID NOT NULL,
     "location_id" UUID,
@@ -143,10 +151,19 @@ CREATE UNIQUE INDEX "recipients_id_card_key" ON "recipients"("id_card");
 CREATE UNIQUE INDEX "provinces_name_key" ON "provinces"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "municipes_name_key" ON "municipes"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "statuses_name_key" ON "statuses"("name");
+
+-- CreateIndex
 CREATE INDEX "package_status_history_package_id_idx" ON "package_status_history"("package_id");
 
 -- CreateIndex
 CREATE INDEX "package_status_history_status_id_idx" ON "package_status_history"("status_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "locations_name_key" ON "locations"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "package_hbls_package_id_hbl_code_key" ON "package_hbls"("package_id", "hbl_code");
@@ -174,6 +191,9 @@ ALTER TABLE "packages" ADD CONSTRAINT "packages_recipient_id_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "packages" ADD CONSTRAINT "packages_province_id_fkey" FOREIGN KEY ("province_id") REFERENCES "provinces"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "packages" ADD CONSTRAINT "packages_municipe_id_fkey" FOREIGN KEY ("municipe_id") REFERENCES "municipes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "packages" ADD CONSTRAINT "packages_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "statuses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

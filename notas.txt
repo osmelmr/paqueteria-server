@@ -1,0 +1,39 @@
+cuales campos la ia manda que se deben buscar para que no genere conflicto si ya existen?
+el municipio
+la provincia
+y el cliente a traves del ci el numT y el nombre completo
+estos 3 datos hay que buscar si tienen coincidencia en la db antes de almacenarlos
+en caso de no existir se debe crear y al llamar al servicio que almacena cada dato pasarle la id del nuevo elemento creado
+
+
+que datos son necesarios verificar si existen antes de almacenar un bulk de datos?
+si la guia existe y no esta relacionada a ua agencia diferente
+si el estatus existe
+si la ubicacion existe
+en caso de no existir se debe crear y al llamar al servicio que almacena cada dato pasarle la id del nuevo elemento creado
+
+en ambos casos se cumple que:
+para cada uno de estos elementos puede llegar el id el valor ambos o ninguno
+siempre priorizaremos e id si viene id comprobaremos primero si hay un elemento con esa id 
+si es asi continuaremos con esa id en caso de no venir con id o no existir un elemento con esa id
+verificaremos si hay valor si hay valor buscaremos si tiene coincidencia con algun elemento de la db
+en caso de no existir creamos obtenemos su id y continuamos con la id del elemento nuevo
+en caso de existir tomamos el id y continuamos con el
+
+El proceso de limpieza de los datos para si comparacion sera el sigiente
+en caso de :
+municipio
+provincia
+estatus
+ubicacion
+se almacenan en la base datos de la siguiente forma se transforman a mayusculas se le elimina todo tipo
+de caracter especial multiples espacios se reducen a uno
+por ende el proceso de normalizado a la hora de la comparacion debe ser el mismo
+no obstante
+a la comparacion no debe importarle si son mayusculas o minusculas R = R
+ademas debe poder devolver coincidencia si el que estamos comparando esta contenido dentro de la db
+ejemplo input S'anTiago  db SANTIAGO DE CUBA
+coincidencia positiva
+
+
+

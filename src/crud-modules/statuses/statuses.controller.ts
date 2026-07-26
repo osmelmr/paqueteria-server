@@ -1,6 +1,17 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../../auth/guards/roles.guard.js';
+import { CreateStatusDto } from './dto/create-status.dto.js';
+import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { StatusesService } from './statuses.service.js';
 
 @Controller('statuses')
@@ -16,5 +27,20 @@ export class StatusesController {
   @Get(':name')
   findByName(@Param('name') name: string) {
     return this.statuses.findByName(name);
+  }
+
+  @Post()
+  create(@Body() dto: CreateStatusDto) {
+    return this.statuses.create(dto);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+    return this.statuses.update(id, dto);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    await this.statuses.delete(id);
   }
 }

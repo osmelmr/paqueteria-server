@@ -34,7 +34,7 @@ export class UpdatePackageDto {
 
   @IsOptional()
   @IsDateString()
-  departureDate?: string;
+  arrivalDate?: string;
 
   @IsOptional()
   @IsString()

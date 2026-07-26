@@ -89,7 +89,7 @@ export class PackagesService {
     address?: string;
     weight?: number;
     content?: string;
-    departureDate?: string;
+    arrivalDate?: string;
     statusId: string;
     locationId?: string;
     isOrphan?: boolean;
@@ -101,8 +101,8 @@ export class PackagesService {
       const pkg = await tx.package.create({
         data: {
           ...packageData,
-          departureDate: packageData.departureDate
-            ? new Date(packageData.departureDate)
+          arrivalDate: packageData.arrivalDate
+            ? new Date(packageData.arrivalDate)
             : undefined,
         },
       });
@@ -136,7 +136,7 @@ export class PackagesService {
       address?: string;
       weight?: number;
       content?: string;
-      departureDate?: string;
+      arrivalDate?: string;
       statusId?: string;
       locationId?: string;
       isOrphan?: boolean;
@@ -153,8 +153,8 @@ export class PackagesService {
         where: { id },
         data: {
           ...packageData,
-          departureDate: packageData.departureDate
-            ? new Date(packageData.departureDate)
+          arrivalDate: packageData.arrivalDate
+            ? new Date(packageData.arrivalDate)
             : undefined,
         },
       });

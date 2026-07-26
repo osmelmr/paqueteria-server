@@ -3,36 +3,39 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { normalizeText } from '../../common/utils/normalize-text.js';
 
 @Injectable()
-export class ProvincesService {
+export class MunicipesService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.province.findMany({ orderBy: { name: 'asc' } });
+    return this.prisma.municipe.findMany({ orderBy: { name: 'asc' } });
   }
 
   async findByName(name: string) {
-    return this.prisma.province.findFirst({
+    return this.prisma.municipe.findFirst({
       where: { name: { equals: name, mode: 'insensitive' } },
     });
   }
 
   async findById(id: string) {
-    const province = await this.prisma.province.findUnique({ where: { id } });
-    if (!province) throw new NotFoundException('Province not found');
-    return province;
+    const municipe = await this.prisma.municipe.findUnique({ where: { id } });
+    if (!municipe) throw new NotFoundException('Municipe not found');
+    return municipe;
   }
 
   async create(name: string) {
-    return this.prisma.province.create({ data: { name: normalizeText(name) } });
+    return this.prisma.municipe.create({ data: { name: normalizeText(name) } });
   }
 
   async update(id: string, name: string) {
     await this.findById(id);
-    return this.prisma.province.update({ where: { id }, data: { name: normalizeText(name) } });
+    return this.prisma.municipe.update({
+      where: { id },
+      data: { name: normalizeText(name) },
+    });
   }
 
   async delete(id: string) {
     await this.findById(id);
-    await this.prisma.province.delete({ where: { id } });
+    await this.prisma.municipe.delete({ where: { id } });
   }
 }

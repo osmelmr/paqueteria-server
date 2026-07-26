@@ -34,7 +34,7 @@ export class CreatePackageDto {
 
   @IsOptional()
   @IsDateString()
-  departureDate?: string;
+  arrivalDate?: string;
 
   @IsString()
   statusId: string;

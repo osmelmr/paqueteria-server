@@ -144,6 +144,7 @@ model Package {
 
   statusId           String       @map("status_id") @db.Uuid
   locationId         String?      @map("location_id") @db.Uuid
+  // el atributo is Orpahan no es necesario ya que podemos buscar los pack que no tienen guia asociada
   isOrphan           Boolean      @default(false) @map("is_orphan")
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamptz()

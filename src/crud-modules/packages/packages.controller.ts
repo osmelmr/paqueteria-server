@@ -33,6 +33,8 @@ export class PackagesController {
     @Query('search') search?: string,
     @Query('alert') alert?: string,
     @Query('statusDate') statusDate?: string,
+    @Query('locationId') locationId?: string,
+    @Query('agencyId') agencyId?: string,
   ) {
     return this.packages.findAll({
       status,
@@ -45,6 +47,8 @@ export class PackagesController {
       search,
       alert: alert !== undefined ? alert === 'true' : undefined,
       statusDate: statusDate || undefined,
+      locationId: locationId || undefined,
+      agencyId: agencyId || undefined,
     });
   }
 

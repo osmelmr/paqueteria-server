@@ -31,6 +31,8 @@ export class PackagesService {
     search?: string;
     alert?: boolean;
     statusDate?: string;
+    locationId?: string;
+    agencyId?: string;
   }) {
     const where: any = {};
     if (filters.status) where.statusId = filters.status;
@@ -38,6 +40,8 @@ export class PackagesService {
     if (filters.municipeId) where.municipeId = filters.municipeId;
     if (filters.isOrphan !== undefined) where.isOrphan = filters.isOrphan;
     if (filters.alert !== undefined) where.alert = filters.alert;
+    if (filters.locationId) where.locationId = filters.locationId;
+    if (filters.agencyId) where.guide = { agencyId: filters.agencyId };
     if (filters.statusDate) {
       const date = new Date(filters.statusDate);
       const nextDay = new Date(date);

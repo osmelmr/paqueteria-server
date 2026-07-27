@@ -32,6 +32,7 @@ export class PackagesController {
     @Query('guideId') guideId?: string,
     @Query('search') search?: string,
     @Query('alert') alert?: string,
+    @Query('statusDate') statusDate?: string,
   ) {
     return this.packages.findAll({
       status,
@@ -43,6 +44,7 @@ export class PackagesController {
       guideId,
       search,
       alert: alert !== undefined ? alert === 'true' : undefined,
+      statusDate: statusDate || undefined,
     });
   }
 

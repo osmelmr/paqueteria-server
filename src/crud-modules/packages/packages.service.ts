@@ -30,6 +30,7 @@ export class PackagesService {
     guideId?: string;
     search?: string;
     alert?: boolean;
+    statusDate?: string;
   }) {
     const where: any = {};
     if (filters.status) where.statusId = filters.status;
@@ -37,6 +38,16 @@ export class PackagesService {
     if (filters.municipeId) where.municipeId = filters.municipeId;
     if (filters.isOrphan !== undefined) where.isOrphan = filters.isOrphan;
     if (filters.alert !== undefined) where.alert = filters.alert;
+    if (filters.statusDate) {
+      const date = new Date(filters.statusDate);
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      where.statuses = {
+        some: {
+          createdAt: { gte: date, lt: nextDay },
+        },
+      };
+    }
     if (filters.hbl)
       where.hbls = {
         some: { hblCode: { contains: filters.hbl, mode: 'insensitive' } },

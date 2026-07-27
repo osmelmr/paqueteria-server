@@ -156,6 +156,11 @@ model Package {
   hbls      PackageHbl[]
   statuses  PackageStatusHistory[]
 
+  //ruta
+  routeId     String?  @map("route_id") @db.Uuid
+  route       Route?   @relation(fields: [routeId], references: [id])
+  
+
   @@map("packages")
 }
 
@@ -170,4 +175,44 @@ model PackageHbl {
   @@unique([packageId, hblCode])
   @@unique([hblCode])
   @@map("package_hbls")
+}
+
+//ruta
+model Vehicle {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(50)   // Nombre o placa
+  isActive  Boolean  @default(true) @map("is_active")
+  drivers   DriverVehicle[]
+  routes    Route[]
+  @@map("vehicles")
+}
+
+model Driver {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(100)
+  isActive  Boolean  @default(true) @map("is_active")
+  vehicles  DriverVehicle[]
+  @@map("drivers")
+}
+
+// Tabla intermedia para muchos a muchos entre Vehicle y Driver
+model DriverVehicle {
+  id        String   @id @default(uuid()) @db.Uuid
+  vehicleId String   @map("vehicle_id") @db.Uuid
+  driverId  String   @map("driver_id") @db.Uuid
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  @@unique([vehicleId, driverId])
+  @@map("driver_vehicles")
+}
+
+model Route {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  departureDate DateTime @map("departure_date") @db.Timestamptz()
+  vehicleId   String   @map("vehicle_id") @db.Uuid
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  packages    Package[]
+  @@map("routes")
 }

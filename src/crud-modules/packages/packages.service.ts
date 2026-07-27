@@ -6,9 +6,10 @@ function normalizePackageInclude(includeHistory = false) {
     hbls: true,
     recipient: true,
     province: true,
+    municipe: true,
     status: true,
     location: true,
-    guide: true,
+    guide: { include: { agency: true } },
     ...(includeHistory
       ? { statuses: { orderBy: { createdAt: 'desc' as const } } }
       : {}),
@@ -22,6 +23,7 @@ export class PackagesService {
   async findAll(filters: {
     status?: string;
     provinceId?: string;
+    municipeId?: string;
     isOrphan?: boolean;
     hbl?: string;
     recipientId?: string;
@@ -31,6 +33,7 @@ export class PackagesService {
     const where: any = {};
     if (filters.status) where.statusId = filters.status;
     if (filters.provinceId) where.provinceId = filters.provinceId;
+    if (filters.municipeId) where.municipeId = filters.municipeId;
     if (filters.isOrphan !== undefined) where.isOrphan = filters.isOrphan;
     if (filters.hbl)
       where.hbls = {

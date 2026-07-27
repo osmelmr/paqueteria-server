@@ -25,6 +25,7 @@ export class PackagesController {
   findAll(
     @Query('status') status?: string,
     @Query('provinceId') provinceId?: string,
+    @Query('municipeId') municipeId?: string,
     @Query('isOrphan') isOrphan?: string,
     @Query('hbl') hbl?: string,
     @Query('recipientId') recipientId?: string,
@@ -34,6 +35,7 @@ export class PackagesController {
     return this.packages.findAll({
       status,
       provinceId,
+      municipeId,
       isOrphan: isOrphan !== undefined ? isOrphan === 'true' : undefined,
       hbl,
       recipientId,

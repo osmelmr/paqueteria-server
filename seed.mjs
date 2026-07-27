@@ -164,24 +164,24 @@ async function main() {
     await pool.query(
       `INSERT INTO packages (
         id, guide_id, recipient_id, province_id, address, weight, content, 
-        departure_date, arrival_date, status_id, location_id, is_orphan, created_at, updated_at
+        departure_date, arrival_date, status_id, location_id, created_at, updated_at
       )
       VALUES 
         (
           gen_random_uuid(), $1, $2, $3, 'Calle Principal #123, Ensanche Naco', 15.50, 'Electrónicos y accesorios',
-          '2026-07-20', '2026-07-23', $4, $5, false, NOW(), NOW()
+          '2026-07-20', '2026-07-23', $4, $5, NOW(), NOW()
         ),
         (
           gen_random_uuid(), $1, $6, $7, 'Av. Independencia #456, Gazcue', 8.75, 'Documentos y libros',
-          '2026-07-21', '2026-07-22', $8, $9, false, NOW(), NOW()
+          '2026-07-21', '2026-07-22', $8, $9, NOW(), NOW()
         ),
         (
           gen_random_uuid(), $10, $11, $12, 'Calle Beller #789, Los Jardines', 25.00, 'Equipos de oficina',
-          '2026-07-19', '2026-07-24', $13, $14, false, NOW(), NOW()
+          '2026-07-19', '2026-07-24', $13, $14, NOW(), NOW()
         ),
         (
           gen_random_uuid(), $15, $16, $17, 'Playa Dorada #321, Puerto Plata', 12.30, 'Ropa y calzado',
-          '2026-07-18', '2026-07-25', $18, $19, false, NOW(), NOW()
+          '2026-07-18', '2026-07-25', $18, $19, NOW(), NOW()
         )`,
       [
         guideMap['GUIDE-001'], recipientMap['123456789'], provinceMap['Distrito Nacional'], 

@@ -162,8 +162,8 @@ async function main() {
     const id = PACKAGE_IDS[p.idx];
     const { rowCount } = await pool.query(
       `INSERT INTO packages (id, guide_id, recipient_id, province_id,
-        weight, content, arrival_date, status_id, location_id, is_orphan, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, false, NOW(), NOW())
+        weight, content, arrival_date, status_id, location_id, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, NOW(), NOW())
        ON CONFLICT (id) DO NOTHING`,
       [id, GUIDE_ID, RECIPIENT_IDS[p.recipientCard], PROVINCE_IDS[p.provinceName],
        p.weight, p.content, p.arrival,

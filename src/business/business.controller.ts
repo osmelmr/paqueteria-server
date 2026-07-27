@@ -42,7 +42,6 @@ export class BusinessController {
       arrivalDate?: string;
       statusId?: string;
       locationId?: string;
-      isOrphan?: boolean;
       anotations?: string;
       alertDescription?: string;
       hbls?: string[];

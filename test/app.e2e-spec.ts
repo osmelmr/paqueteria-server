@@ -189,14 +189,12 @@ describe('Business Modules (e2e)', () => {
           contentDescription: 'Ropa y zapatos',
           statusId,
           locationId,
-          isOrphan: true,
           hbls: ['HBL-001', 'HBL-002'],
         })
         .expect(201);
 
       expect(res.body.id).toBeDefined();
       expect(res.body.hbls).toHaveLength(2);
-      expect(res.body.isOrphan).toBe(true);
       packageId = res.body.id;
     });
 

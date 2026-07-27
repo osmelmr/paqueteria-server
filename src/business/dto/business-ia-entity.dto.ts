@@ -1,6 +1,5 @@
 import {
   IsArray,
-  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
@@ -74,10 +73,6 @@ export class BulkAiEntities {
   @IsString()
   @IsOptional()
   location?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isOrphan?: boolean;
 
   //no estaticos
   @IsArray()

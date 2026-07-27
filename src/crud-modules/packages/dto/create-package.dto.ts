@@ -44,10 +44,6 @@ export class CreatePackageDto {
   locationId?: string;
 
   @IsOptional()
-  @IsBoolean()
-  isOrphan?: boolean;
-
-  @IsOptional()
   @IsString()
   anotations?: string;
 

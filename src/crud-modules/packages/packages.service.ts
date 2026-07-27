@@ -24,7 +24,6 @@ export class PackagesService {
     status?: string;
     provinceId?: string;
     municipeId?: string;
-    isOrphan?: boolean;
     hbl?: string;
     recipientId?: string;
     guideId?: string;
@@ -38,7 +37,6 @@ export class PackagesService {
     if (filters.status) where.statusId = filters.status;
     if (filters.provinceId) where.provinceId = filters.provinceId;
     if (filters.municipeId) where.municipeId = filters.municipeId;
-    if (filters.isOrphan !== undefined) where.isOrphan = filters.isOrphan;
     if (filters.alert !== undefined) where.alert = filters.alert;
     if (filters.locationId) where.locationId = filters.locationId;
     if (filters.agencyId) where.guide = { agencyId: filters.agencyId };
@@ -112,7 +110,6 @@ export class PackagesService {
     arrivalDate?: string;
     statusId: string;
     locationId?: string;
-    isOrphan?: boolean;
     anotations?: string;
     alert?: boolean;
     alertDescription?: string;
@@ -162,8 +159,7 @@ export class PackagesService {
       arrivalDate?: string;
       statusId?: string;
       locationId?: string;
-      isOrphan?: boolean;
-      anotations?: string;
+    anotations?: string;
       alert?: boolean;
       alertDescription?: string;
       hbls?: string[];

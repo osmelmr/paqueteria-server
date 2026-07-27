@@ -175,7 +175,6 @@ export class BusinessService {
     packageData.address = entity.address;
     packageData.content = entity.content;
     packageData.weight = entity.weight;
-    if (entity.isOrphan !== undefined) packageData.isOrphan = entity.isOrphan;
     if (entity.arrivalDate)
       packageData.arrivalDate = new Date(entity.arrivalDate);
 
@@ -294,7 +293,6 @@ y como ambos servicios pueden procesar de lugares diferentes es mejor que ambos 
       entity.content = pkg.content;
       entity.weight = pkg.weight;
       entity.arrivalDate = pkg.arrivalDate;
-      entity.isOrphan = entities.isOrphan;
       entity.fullName = pkg.fullName;
       entity.idCard = pkg.idCard;
       entity.phone = pkg.phone;

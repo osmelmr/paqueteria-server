@@ -1,6 +1,5 @@
 import {
   IsArray,
-  IsBoolean,
   IsDate,
   IsDecimal,
   IsOptional,
@@ -52,10 +51,6 @@ export class BusinessEntity {
   @IsDecimal()
   @IsOptional()
   weight?: number;
-
-  @IsBoolean()
-  @IsOptional()
-  isOrphan?: boolean;
 
   @IsDate()
   @IsOptional()
@@ -115,10 +110,6 @@ export class BusinessManualEntity {
   @IsDecimal()
   @IsOptional()
   weight?: number;
-
-  @IsBoolean()
-  @IsOptional()
-  isOrphan?: boolean;
 
   @IsDate()
   @IsOptional()

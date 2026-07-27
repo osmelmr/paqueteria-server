@@ -17,7 +17,6 @@ export class PackageAlertService {
       arrivalDate?: string;
       statusId?: string;
       locationId?: string;
-      isOrphan?: boolean;
       anotations?: string;
       alertDescription?: string;
       hbls?: string[];
@@ -43,7 +42,6 @@ export class PackageAlertService {
       content: 'content',
       statusId: 'statusId',
       locationId: 'locationId',
-      isOrphan: 'isOrphan',
       anotations: 'anotations',
       alertDescription: 'alertDescription',
     };

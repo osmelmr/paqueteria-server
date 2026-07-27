@@ -29,12 +29,14 @@ export class PackagesService {
     recipientId?: string;
     guideId?: string;
     search?: string;
+    alert?: boolean;
   }) {
     const where: any = {};
     if (filters.status) where.statusId = filters.status;
     if (filters.provinceId) where.provinceId = filters.provinceId;
     if (filters.municipeId) where.municipeId = filters.municipeId;
     if (filters.isOrphan !== undefined) where.isOrphan = filters.isOrphan;
+    if (filters.alert !== undefined) where.alert = filters.alert;
     if (filters.hbl)
       where.hbls = {
         some: { hblCode: { contains: filters.hbl, mode: 'insensitive' } },

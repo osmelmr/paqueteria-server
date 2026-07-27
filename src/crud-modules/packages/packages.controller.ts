@@ -31,6 +31,7 @@ export class PackagesController {
     @Query('recipientId') recipientId?: string,
     @Query('guideId') guideId?: string,
     @Query('search') search?: string,
+    @Query('alert') alert?: string,
   ) {
     return this.packages.findAll({
       status,
@@ -41,6 +42,7 @@ export class PackagesController {
       recipientId,
       guideId,
       search,
+      alert: alert !== undefined ? alert === 'true' : undefined,
     });
   }
 

@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module.js';
-import { AgenciesModule } from './crud-modules/agencies/agencies.module.js';
-import { GuidesModule } from './crud-modules/guides/guides.module.js';
-import { LocationsModule } from './crud-modules/locations/locations.module.js';
-import { PackagesModule } from './crud-modules/packages/packages.module.js';
+import { AgenciesModule } from './business/agencies/agencies.module.js';
+import { GuidesModule } from './business/guides/guides.module.js';
+import { LocationsModule } from './business/locations/locations.module.js';
+import { PackagesModule } from './business/packages/packages.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
-import { ProvincesModule } from './crud-modules/provinces/provinces.module.js';
-import { MunicipesModule } from './crud-modules/municipes/municipes.module.js';
-import { RecipientsModule } from './crud-modules/recipients/recipients.module.js';
-import { StatusesModule } from './crud-modules/statuses/statuses.module.js';
-import { UsersModule } from './crud-modules/users/users.module.js';
+import { ProvincesModule } from './business/provinces/provinces.module.js';
+import { MunicipesModule } from './business/municipes/municipes.module.js';
+import { RecipientsModule } from './business/recipients/recipients.module.js';
+import { StatusesModule } from './business/statuses/statuses.module.js';
+import { UsersModule } from './business/users/users.module.js';
 import { CommonModule } from './common/common.module.js';
-import { BusinessModule } from './business/business.module.js';
 import { AiModule } from './ai/ai.module.js';
-import { RoutesModule } from './crud-modules/routes/routes.module.js';
+import { RoutesModule } from './business/routes/routes.module.js';
+import { StatisticsModule } from './statistics/statistics.module.js';
 
 @Module({
   imports: [
@@ -28,10 +28,10 @@ import { RoutesModule } from './crud-modules/routes/routes.module.js';
     GuidesModule,
     AgenciesModule,
     CommonModule,
-    BusinessModule,
     MunicipesModule,
     AiModule,
     RoutesModule,
+    StatisticsModule,
   ],
 })
 export class AppModule {}

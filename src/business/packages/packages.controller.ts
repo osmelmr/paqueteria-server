@@ -14,7 +14,7 @@ import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
 import { UpdatePackageStatusDto } from './dto/update-package-status.dto.js';
-import { PackagesService } from './packages.service.js';
+import { PackagesService } from './services/packages-crud.service.js';
 
 @Controller('packages')
 @UseGuards(JwtAuthGuard, RolesGuard)

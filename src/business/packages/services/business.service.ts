@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { BusinessEntity } from './dto/business-entity.dto.js';
-import { BulkAiEntities } from './dto/business-ia-entity.dto.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
+import { BusinessEntity } from '../dto/business-entity.dto.js';
+import { BulkAiEntities } from '../dto/business-ia-entity.dto.js';
 
 @Injectable()
 export class BusinessService {

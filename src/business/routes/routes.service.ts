@@ -53,8 +53,10 @@ export class RoutesService {
       description: data.description,
       vehicleId: data.vehicleId,
     };
-    if (data.departureDate) createData.departureDate = new Date(data.departureDate);
-    if (packageIds.length > 0) createData.packages = { connect: packageIds.map((id) => ({ id })) };
+    if (data.departureDate)
+      createData.departureDate = new Date(data.departureDate);
+    if (packageIds.length > 0)
+      createData.packages = { connect: packageIds.map((id) => ({ id })) };
 
     return this.prisma.route.create({
       data: createData,
@@ -75,8 +77,10 @@ export class RoutesService {
     await this.findById(id);
 
     const updateData: any = {};
-    if (data.name !== undefined) updateData.name = data.name.toUpperCase().trim();
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.name !== undefined)
+      updateData.name = data.name.toUpperCase().trim();
+    if (data.description !== undefined)
+      updateData.description = data.description;
     if (data.departureDate !== undefined)
       updateData.departureDate = new Date(data.departureDate);
     if (data.vehicleId !== undefined) updateData.vehicleId = data.vehicleId;

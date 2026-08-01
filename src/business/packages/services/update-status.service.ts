@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 
 @Injectable()
 export class UpdateStatusService {
@@ -25,7 +25,20 @@ export class UpdateStatusService {
   fueron encontrados en la base de datos
 
     */
-
+    /*
+    comentario posterior al superior ahora que cree un servicio disenado de esta forma
+    (
+    rimero debe crear una variale capaz de almacenar la lista de hbls
+    debe consultar la existencia en la base de datos de cada hbl en caso de no existir
+    debe agregar este hbl a la lista de hbls que no existen
+    al terminar debe retornar un arreglo vacio si ningun hbl fue agregado a la lista o lo 
+    que es lo mismo si todos las hbl tuvieron coincidencai en la base de datos
+    de lo contrario devolver el arreglo con todos los hbls que no existen en la base de datos
+    )
+    alojado en: './package-existence.service.ts'
+    podermos reutilizar la logica de negocio quizas ajustando para que este 
+    proceso se realice antes de la actualizacion 
+    */
     const updated: Array<{ hbl: string; package: any }> = [];
     const notFound: string[] = [];
 

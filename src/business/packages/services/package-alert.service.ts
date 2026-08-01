@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 
 @Injectable()
 export class PackageAlertService {
@@ -65,7 +65,8 @@ export class PackageAlertService {
     if (Object.keys(changedFields).length === 0) {
       return {
         success: false,
-        message: 'Ningun campo fue modificado, no se puede desactivar la alerta sin cambios reales',
+        message:
+          'Ningun campo fue modificado, no se puede desactivar la alerta sin cambios reales',
       };
     }
 

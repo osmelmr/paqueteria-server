@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 
 function normalizePackageInclude(includeHistory = false) {
   return {
@@ -159,7 +159,7 @@ export class PackagesService {
       arrivalDate?: string;
       statusId?: string;
       locationId?: string;
-    anotations?: string;
+      anotations?: string;
       alert?: boolean;
       alertDescription?: string;
       hbls?: string[];

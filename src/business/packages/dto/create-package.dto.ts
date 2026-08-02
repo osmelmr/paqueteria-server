@@ -39,9 +39,8 @@ export class CreatePackageDto {
   @IsString()
   statusId: string;
 
-  @IsOptional()
   @IsString()
-  locationId?: string;
+  locationId: string;
 
   @IsOptional()
   @IsString()

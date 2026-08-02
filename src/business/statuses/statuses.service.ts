@@ -29,7 +29,10 @@ export class StatusesService {
 
   async update(id: string, dto: UpdateStatusDto) {
     await this.findById(id);
-    return this.prisma.status.update({ where: { id }, data: { name: dto.name } });
+    return this.prisma.status.update({
+      where: { id },
+      data: { name: dto.name },
+    });
   }
 
   async delete(id: string) {

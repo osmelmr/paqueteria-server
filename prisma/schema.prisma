@@ -51,8 +51,13 @@ model Agency {
   id      String   @id @default(uuid()) @db.Uuid
   name    String   @unique @db.VarChar(100)
   guides  Guide[]
-
+  type    GuideType
   @@map("agencies")
+}
+
+enum GuideType {
+  AEREA
+  MARITIMA
 }
 
 model Guide {
@@ -106,10 +111,12 @@ model PackageStatusHistory {
   id        String   @id @default(uuid()) @db.Uuid
   packageId String   @map("package_id") @db.Uuid
   statusId  String   @map("status_id") @db.Uuid
+  locationId  String   @map("location_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
   status  Status  @relation(fields: [statusId], references: [id])
+  location Location  @relation(fields: [locationId], references: [id])
 
   @@index([packageId])
   @@index([statusId])
@@ -121,7 +128,7 @@ model Location {
   id       String    @id @default(uuid()) @db.Uuid
   name     String    @unique @db.VarChar(100)
   packages Package[]
-
+  packageStatuses PackageStatusHistory[]
   @@map("locations")
 }
 
@@ -216,3 +223,12 @@ model Route {
   packages    Package[]
   @@map("routes")
 }
+
+/*
+necesito agregar algo mas al esquema y es que me es necesario saber al presionar un 
+boton por todos los estados que ha pasado un paquete y la localizacion en cada momento 
+entonces necesito un sistema que dado el id de un paquete me permita conocer todas las 
+relaciones de estados y locaciones que estan relacionadas valga la redundancia a ese paquete.
+bueno lo hice a mano para esto lo que hice fue modificar la tabla package status history para 
+que tambien incluyera la locacion
+*/

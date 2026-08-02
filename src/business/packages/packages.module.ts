@@ -4,6 +4,7 @@ import { PackagesService } from './services/packages-crud.service.js';
 import { BusinessService } from './services/business.service.js';
 import { UpdateStatusService } from './services/update-status.service.js';
 import { PackageAlertService } from './services/package-alert.service.js';
+import { PackageHistoryService } from './services/package-history.service.js';
 
 @Module({
   controllers: [PackagesController],
@@ -12,6 +13,7 @@ import { PackageAlertService } from './services/package-alert.service.js';
     BusinessService,
     UpdateStatusService,
     PackageAlertService,
+    PackageHistoryService,
   ],
   exports: [UpdateStatusService, PackageAlertService],
 })

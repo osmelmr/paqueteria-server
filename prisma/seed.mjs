@@ -114,11 +114,16 @@ async function main() {
 
   // ── 5. Agencies ─────────────────────────────────
   console.log('Seeding agencies…');
+  const AGENCY_TYPES = {
+    'DHL Cuba': 'AEREA',
+    'FedEx Cuba': 'AEREA',
+    'Correos Cuba': 'MARITIMA',
+  };
   for (const [name, id] of Object.entries(AGENCY_IDS)) {
     const { rowCount } = await pool.query(
-      `INSERT INTO agencies (id, name) VALUES ($1, $2)
+      `INSERT INTO agencies (id, name, type) VALUES ($1, $2, $3)
        ON CONFLICT (id) DO NOTHING`,
-      [id, name],
+      [id, name, AGENCY_TYPES[name]],
     );
     console.log(rowCount > 0 ? `  Created agency: ${name}` : `  Skipped agency: ${name}`);
   }

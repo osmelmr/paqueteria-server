@@ -103,10 +103,18 @@ export class UpdateStatusService {
 
           // Crear registro en el historial de estados si se actualizo el statusId
           if (statusId) {
+            // Ultima ubicacion conocida: la enviada o la actual del paquete
+            const historyLocationId =
+              locationId ?? packageHbl.package.locationId ?? null;
+            if (!historyLocationId) {
+              throw new Error('Paquete sin ubicacion conocida');
+            }
+
             await tx.packageStatusHistory.create({
               data: {
                 packageId: pkg.id,
                 statusId,
+                locationId: historyLocationId,
               },
             });
           }

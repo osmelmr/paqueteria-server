@@ -1,14 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 
 @Injectable()
-class PackageHistoryService {
-  history() {
-    /*
-    este servicio debe recibir unicamente el id de un paquete y a travez de este 
-    debemos buscar en la db todos los estados y locaciones asociados a ese paquete osea 
-    obtener las tuplas de package status history asociadas a el paquete y devolver 
-    una lista de estas que contenga el estado la localizacion y la fecha 
-    */
-    return 0;
+export class PackageHistoryService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async history(packageId: string) {
+    const pkg = await this.prisma.package.findUnique({
+      where: { id: packageId },
+      select: { id: true },
+    });
+    if (!pkg) throw new NotFoundException('Package not found');
+
+    return this.prisma.packageStatusHistory.findMany({
+      where: { packageId },
+      include: { status: true, location: true },
+      orderBy: { createdAt: 'asc' },
+    });
   }
 }

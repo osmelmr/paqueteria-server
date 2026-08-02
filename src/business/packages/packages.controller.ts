@@ -15,11 +15,15 @@ import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
 import { UpdatePackageStatusDto } from './dto/update-package-status.dto.js';
 import { PackagesService } from './services/packages-crud.service.js';
+import { PackageHistoryService } from './services/package-history.service.js';
 
 @Controller('packages')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PackagesController {
-  constructor(private packages: PackagesService) {}
+  constructor(
+    private packages: PackagesService,
+    private packageHistory: PackageHistoryService,
+  ) {}
 
   @Get()
   findAll(
@@ -34,6 +38,7 @@ export class PackagesController {
     @Query('statusDate') statusDate?: string,
     @Query('locationId') locationId?: string,
     @Query('agencyId') agencyId?: string,
+    @Query('guideType') guideType?: string,
   ) {
     return this.packages.findAll({
       status,
@@ -47,12 +52,23 @@ export class PackagesController {
       statusDate: statusDate || undefined,
       locationId: locationId || undefined,
       agencyId: agencyId || undefined,
+      guideType: (guideType || undefined) as 'AEREA' | 'MARITIMA',
     });
+  }
+
+  @Get('by-hbl/:hbl')
+  findByHbl(@Param('hbl') hbl: string) {
+    return this.packages.findByHbl(hbl);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.packages.findById(id);
+  }
+
+  @Get(':id/history')
+  history(@Param('id') id: string) {
+    return this.packageHistory.history(id);
   }
 
   @Post()

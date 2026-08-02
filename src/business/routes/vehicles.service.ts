@@ -56,7 +56,8 @@ export class VehiclesService {
     }
 
     const updateData: any = {};
-    if (data.name !== undefined) updateData.name = data.name.toUpperCase().trim();
+    if (data.name !== undefined)
+      updateData.name = data.name.toUpperCase().trim();
 
     return this.prisma.vehicle.update({
       where: { id },

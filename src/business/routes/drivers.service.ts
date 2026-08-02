@@ -30,7 +30,8 @@ export class DriversService {
   async update(id: string, data: { name?: string }) {
     await this.findById(id);
     const updateData: any = {};
-    if (data.name !== undefined) updateData.name = data.name.toUpperCase().trim();
+    if (data.name !== undefined)
+      updateData.name = data.name.toUpperCase().trim();
     return this.prisma.driver.update({
       where: { id },
       data: updateData,

@@ -22,7 +22,9 @@ export class LocationsService {
 
   async update(id: string, data: { name?: string }) {
     await this.findById(id);
-    const normalized = data.name ? { ...data, name: normalizeText(data.name) } : data;
+    const normalized = data.name
+      ? { ...data, name: normalizeText(data.name) }
+      : data;
     return this.prisma.location.update({ where: { id }, data: normalized });
   }
 

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 
 function normalizePackageInclude(includeHistory = false) {
@@ -11,7 +15,12 @@ function normalizePackageInclude(includeHistory = false) {
     location: true,
     guide: { include: { agency: true } },
     ...(includeHistory
-      ? { statuses: { orderBy: { createdAt: 'desc' as const } } }
+      ? {
+          statuses: {
+            orderBy: { createdAt: 'desc' as const },
+            include: { status: true, location: true },
+          },
+        }
       : {}),
   };
 }
@@ -32,6 +41,7 @@ export class PackagesService {
     statusDate?: string;
     locationId?: string;
     agencyId?: string;
+    guideType?: 'AEREA' | 'MARITIMA';
   }) {
     const where: any = {};
     if (filters.status) where.statusId = filters.status;
@@ -39,7 +49,12 @@ export class PackagesService {
     if (filters.municipeId) where.municipeId = filters.municipeId;
     if (filters.alert !== undefined) where.alert = filters.alert;
     if (filters.locationId) where.locationId = filters.locationId;
-    if (filters.agencyId) where.guide = { agencyId: filters.agencyId };
+    if (filters.agencyId || filters.guideType) {
+      where.guide = {
+        ...(filters.agencyId && { agencyId: filters.agencyId }),
+        ...(filters.guideType && { agency: { type: filters.guideType } }),
+      };
+    }
     if (filters.statusDate) {
       const date = new Date(filters.statusDate);
       const nextDay = new Date(date);
@@ -109,7 +124,7 @@ export class PackagesService {
     content?: string;
     arrivalDate?: string;
     statusId: string;
-    locationId?: string;
+    locationId: string;
     anotations?: string;
     alert?: boolean;
     alertDescription?: string;
@@ -131,6 +146,7 @@ export class PackagesService {
         data: {
           packageId: pkg.id,
           statusId: packageData.statusId,
+          locationId: packageData.locationId,
         },
       });
 
@@ -182,10 +198,18 @@ export class PackagesService {
       });
 
       if (packageData.statusId) {
+        const historyLocationId =
+          packageData.locationId ?? existing.locationId ?? null;
+        if (!historyLocationId) {
+          throw new BadRequestException(
+            'Debe indicar una ubicación para registrar el nuevo estado',
+          );
+        }
         await tx.packageStatusHistory.create({
           data: {
             packageId: id,
             statusId: packageData.statusId,
+            locationId: historyLocationId,
           },
         });
       }
@@ -210,16 +234,27 @@ export class PackagesService {
     const pkg = await this.prisma.package.findUnique({ where: { id } });
     if (!pkg) throw new NotFoundException('Package not found');
 
+    const historyLocationId = locationId ?? pkg.locationId ?? null;
+    if (!historyLocationId) {
+      throw new BadRequestException(
+        'Debe indicar una ubicación para registrar el nuevo estado',
+      );
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.package.update({
         where: { id },
-        data: { statusId, locationId },
+        data: {
+          statusId,
+          ...(locationId !== undefined && { locationId }),
+        },
       });
 
       await tx.packageStatusHistory.create({
         data: {
           packageId: updated.id,
           statusId,
+          locationId: historyLocationId,
         },
       });
 

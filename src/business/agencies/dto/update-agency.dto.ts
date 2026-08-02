@@ -1,6 +1,12 @@
-import { IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { GuideType } from '../../../../generated/prisma/enums.js';
 
 export class UpdateAgencyDto {
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
+
+  @IsOptional()
+  @IsEnum(GuideType)
+  type?: GuideType;
 }

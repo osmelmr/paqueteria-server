@@ -28,7 +28,10 @@ export class ProvincesService {
 
   async update(id: string, name: string) {
     await this.findById(id);
-    return this.prisma.province.update({ where: { id }, data: { name: normalizeText(name) } });
+    return this.prisma.province.update({
+      where: { id },
+      data: { name: normalizeText(name) },
+    });
   }
 
   async delete(id: string) {

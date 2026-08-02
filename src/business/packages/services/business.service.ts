@@ -24,10 +24,19 @@ export class BusinessService {
     for (const entity of businesEntities) {
       try {
         const packageData = await this.resolverEntityUtility(entity);
+        if (!packageData.statusId || !packageData.locationId) {
+          throw new Error(
+            'La entidad debe tener un status y una ubicacion validos',
+          );
+        }
         const pkg = await this.prisma.$transaction(async (tx) => {
           const created = await tx.package.create({ data: packageData as any });
           await tx.packageStatusHistory.create({
-            data: { packageId: created.id, statusId: packageData.statusId },
+            data: {
+              packageId: created.id,
+              statusId: packageData.statusId,
+              locationId: packageData.locationId,
+            },
           });
           if (entity.hblCodes?.length > 0) {
             await tx.packageHbl.createMany({

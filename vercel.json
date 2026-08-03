@@ -2,12 +2,6 @@
   "version": 2,
   "installCommand": "pnpm install",
   "buildCommand": "pnpm build",
-  "builds": [
-    {
-      "src": "dist/src/serverless.js",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",
@@ -16,7 +10,8 @@
   ],
   "functions": {
     "dist/src/serverless.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 1024
     }
   }
 }

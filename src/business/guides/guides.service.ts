@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { PackageRowDto } from './dto/package-row.dto.js';
 import { ConfirmGuideDto } from './dto/confirm-guide.dto.js';
@@ -90,6 +90,8 @@ export class GuidesService {
   }
 
   async confirm(dto: ConfirmGuideDto): Promise<any> {
-    throw new Error('No implementado');
+    throw new BadRequestException(
+      'La confirmación de guías aún no está implementada. Usa la creación manual de guías o la extracción con IA.',
+    );
   }
 }

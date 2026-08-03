@@ -22,6 +22,10 @@ export class UpdatePackageDto {
 
   @IsOptional()
   @IsString()
+  municipeId?: string;
+
+  @IsOptional()
+  @IsString()
   address?: string;
 
   @IsOptional()

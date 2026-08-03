@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -41,6 +42,9 @@ export class PackagesController {
     @Query('agencyId') agencyId?: string,
     @Query('guideType') guideType?: string,
   ) {
+    if (guideType && !['AEREA', 'MARITIMA'].includes(guideType)) {
+      throw new BadRequestException('guideType inválido');
+    }
     return this.packages.findAll({
       status,
       provinceId,

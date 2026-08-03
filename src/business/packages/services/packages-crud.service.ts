@@ -124,6 +124,7 @@ export class PackagesService {
     guideId?: string;
     recipientId?: string;
     provinceId?: string;
+    municipeId?: string;
     address?: string;
     weight?: number;
     content?: string;
@@ -138,6 +139,11 @@ export class PackagesService {
     const { hbls, ...packageData } = data;
 
     return this.prisma.$transaction(async (tx) => {
+      await this.validateReferences(tx, packageData.statusId, packageData.locationId);
+      if (hbls && hbls.length > 0) {
+        await this.assertHblsAvailable(tx, hbls);
+      }
+
       const pkg = await tx.package.create({
         data: {
           ...packageData,
@@ -174,6 +180,7 @@ export class PackagesService {
       guideId?: string;
       recipientId?: string;
       provinceId?: string;
+      municipeId?: string;
       address?: string;
       weight?: number;
       content?: string;
@@ -191,6 +198,24 @@ export class PackagesService {
     return this.prisma.$transaction(async (tx) => {
       const existing = await tx.package.findUnique({ where: { id } });
       if (!existing) throw new NotFoundException('Package not found');
+
+      if (packageData.statusId || packageData.locationId) {
+        await this.validateReferences(
+          tx,
+          packageData.statusId ?? existing.statusId,
+          packageData.locationId ?? existing.locationId,
+        );
+      }
+
+      if (hbls) {
+        await tx.packageHbl.deleteMany({ where: { packageId: id } });
+        if (hbls.length > 0) {
+          await this.assertHblsAvailable(tx, hbls, id);
+          await tx.packageHbl.createMany({
+            data: hbls.map((hbl) => ({ packageId: id, hblCode: hbl })),
+          });
+        }
+      }
 
       await tx.package.update({
         where: { id },
@@ -217,15 +242,6 @@ export class PackagesService {
             locationId: historyLocationId,
           },
         });
-      }
-
-      if (hbls) {
-        await tx.packageHbl.deleteMany({ where: { packageId: id } });
-        if (hbls.length > 0) {
-          await tx.packageHbl.createMany({
-            data: hbls.map((hbl) => ({ packageId: id, hblCode: hbl })),
-          });
-        }
       }
 
       return tx.package.findUnique({
@@ -278,5 +294,49 @@ export class PackagesService {
       await tx.packageHbl.deleteMany({ where: { packageId: id } });
       await tx.package.delete({ where: { id } });
     });
+  }
+
+  private async validateReferences(
+    tx: {
+      status: { findUnique: (args: { where: { id: string } }) => Promise<unknown> };
+      location: { findUnique: (args: { where: { id: string } }) => Promise<unknown> };
+    },
+    statusId: string,
+    locationId?: string | null,
+  ) {
+    if (statusId) {
+      const status = await tx.status.findUnique({ where: { id: statusId } });
+      if (!status) throw new BadRequestException(`Status inválido: ${statusId}`);
+    }
+    if (locationId) {
+      const location = await tx.location.findUnique({ where: { id: locationId } });
+      if (!location) throw new BadRequestException(`Ubicación inválida: ${locationId}`);
+    }
+  }
+
+  private async assertHblsAvailable(
+    tx: {
+      packageHbl: {
+        findMany: (args: {
+          where: { hblCode: { in: string[] }; packageId?: { not: string } };
+          select: { hblCode: true };
+        }) => Promise<Array<{ hblCode: string }>>;
+      };
+    },
+    hbls: string[],
+    exceptPackageId?: string,
+  ) {
+    const existing = await tx.packageHbl.findMany({
+      where: {
+        hblCode: { in: hbls },
+        ...(exceptPackageId ? { packageId: { not: exceptPackageId } } : {}),
+      },
+      select: { hblCode: true },
+    });
+    if (existing.length > 0) {
+      throw new BadRequestException(
+        `Los siguientes HBL ya están en uso: ${existing.map((h) => h.hblCode).join(', ')}`,
+      );
+    }
   }
 }

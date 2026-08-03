@@ -284,14 +284,36 @@ y como ambos servicios pueden procesar de lugares diferentes es mejor que ambos 
       });
       if (guide) guideId = entities.guideId;
     } else if (entities.guide) {
-      const created = await this.prisma.guide.create({
-        data: {
-          name: entities.guide,
-          agencyId: entities.agencyId,
-          type: entities.guideType,
-        },
+      const existingGuide = await this.prisma.guide.findUnique({
+        where: { name: entities.guide },
       });
-      guideId = created.id;
+      if (existingGuide) {
+        guideId = existingGuide.id;
+      } else {
+        try {
+          const created = await this.prisma.guide.create({
+            data: {
+              name: entities.guide,
+              agencyId: entities.agencyId,
+              type: entities.guideType,
+            },
+          });
+          guideId = created.id;
+        } catch (err) {
+          if ((err as { code?: string }).code === 'P2002') {
+            const duplicate = await this.prisma.guide.findUnique({
+              where: { name: entities.guide },
+            });
+            if (duplicate) {
+              guideId = duplicate.id;
+            } else {
+              throw err;
+            }
+          } else {
+            throw err;
+          }
+        }
+      }
     }
 
     const result: BusinessEntity[] = entities.packages.map((pkg) => {

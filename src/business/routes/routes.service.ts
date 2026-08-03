@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 const routeInclude = {
@@ -45,6 +45,11 @@ export class RoutesService {
       where: { hblCode: { in: data.hbls } },
       select: { packageId: true },
     });
+
+    const vehicle = await this.prisma.vehicle.findUnique({
+      where: { id: data.vehicleId },
+    });
+    if (!vehicle) throw new BadRequestException('Vehículo no encontrado');
 
     const packageIds = [...new Set(hblRecords.map((h) => h.packageId))];
 
@@ -94,6 +99,13 @@ export class RoutesService {
       updateData.packages = {
         set: packageIds.map((pid) => ({ id: pid })),
       };
+    }
+
+    if (data.vehicleId !== undefined) {
+      const vehicle = await this.prisma.vehicle.findUnique({
+        where: { id: data.vehicleId },
+      });
+      if (!vehicle) throw new BadRequestException('Vehículo no encontrado');
     }
 
     return this.prisma.route.update({

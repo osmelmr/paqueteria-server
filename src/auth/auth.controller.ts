@@ -47,7 +47,7 @@ export class AuthController {
     if (!raw) return res.status(401).json({ message: 'Unauthorized' });
     const result = await this.auth.refresh(raw);
     res.cookie(REFRESH_COOKIE, result.refreshToken, COOKIE_OPTIONS);
-    return { accessToken: result.accessToken };
+    return { accessToken: result.accessToken, user: result.user };
   }
 
   @Post('logout')
@@ -62,7 +62,7 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  profile() {
-    return { message: 'Protected route works' };
+  profile(@Req() req: Request) {
+    return { user: req.user };
   }
 }

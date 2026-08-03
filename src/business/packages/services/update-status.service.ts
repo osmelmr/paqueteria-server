@@ -35,8 +35,7 @@ export class UpdateStatusService {
     que es lo mismo si todos las hbl tuvieron coincidencai en la base de datos
     de lo contrario devolver el arreglo con todos los hbls que no existen en la base de datos
     )
-    alojado en: './package-existence.service.ts'
-    podermos reutilizar la logica de negocio quizas ajustando para que este 
+    podemos reutilizar la logica de negocio quizas ajustando para que este 
     proceso se realice antes de la actualizacion 
     */
     const updated: Array<{ hbl: string; package: any }> = [];

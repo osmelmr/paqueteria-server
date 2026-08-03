@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { normalizeText } from '../../common/utils/normalize-text.js';
 import { CreateStatusDto } from './dto/create-status.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 
@@ -12,9 +13,11 @@ export class StatusesService {
   }
 
   async findByName(name: string) {
-    return this.prisma.status.findFirst({
+    const status = await this.prisma.status.findFirst({
       where: { name: { equals: name, mode: 'insensitive' } },
     });
+    if (!status) throw new NotFoundException('Status not found');
+    return status;
   }
 
   async findById(id: string) {
@@ -24,14 +27,24 @@ export class StatusesService {
   }
 
   async create(dto: CreateStatusDto) {
-    return this.prisma.status.create({ data: { name: dto.name } });
+    const name = normalizeText(dto.name);
+    const existing = await this.prisma.status.findFirst({
+      where: { name: { equals: name, mode: 'insensitive' } },
+    });
+    if (existing) throw new ConflictException('Ya existe un estado con ese nombre');
+    return this.prisma.status.create({ data: { name } });
   }
 
   async update(id: string, dto: UpdateStatusDto) {
     await this.findById(id);
+    const name = normalizeText(dto.name);
+    const existing = await this.prisma.status.findFirst({
+      where: { name: { equals: name, mode: 'insensitive' }, NOT: { id } },
+    });
+    if (existing) throw new ConflictException('Ya existe un estado con ese nombre');
     return this.prisma.status.update({
       where: { id },
-      data: { name: dto.name },
+      data: { name },
     });
   }
 

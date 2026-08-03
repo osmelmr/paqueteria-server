@@ -1,11 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 import * as crypto from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { LoginDto } from './dto/login.dto.js';
 
-const ACCESS_EXPIRES = '2h';
-const REFRESH_EXPIRES_MS = 7 * 24 * 60 * 60 * 1000;
+const ACCESS_EXPIRES = (process.env.ACCESS_TOKEN_EXPIRES ??
+  '2h') as JwtSignOptions['expiresIn'];
+const REFRESH_EXPIRES_MS = parseDuration(process.env.JWT_EXPIRES_IN ?? '7d');
 const REFRESH_BYTES = 48;
 
 @Injectable()
@@ -51,7 +52,14 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: stored.userId },
-      select: { id: true, role: true, isActive: true },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        fullName: true,
+        role: true,
+        isActive: true,
+      },
     });
     if (!user || !user.isActive) throw new UnauthorizedException();
 
@@ -60,7 +68,7 @@ export class AuthService {
     const accessToken = this.generateAccessToken(user.id, user.role);
     const refreshToken = await this.generateRefreshToken(user.id);
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, user };
   }
 
   async logout(raw: string) {
@@ -88,6 +96,20 @@ export class AuthService {
 
 function sha256(data: string) {
   return crypto.createHash('sha256').update(data).digest('hex');
+}
+
+function parseDuration(value: string): number {
+  const match = /^(\d+)([smhd])$/.exec(value.trim());
+  if (!match) return 7 * 24 * 60 * 60 * 1000;
+  const amount = Number(match[1]);
+  const unit = match[2];
+  const multipliers: Record<string, number> = {
+    s: 1000,
+    m: 60 * 1000,
+    h: 60 * 60 * 1000,
+    d: 24 * 60 * 60 * 1000,
+  };
+  return amount * multipliers[unit];
 }
 
 async function bcryptCompare(data: string, hash: string) {

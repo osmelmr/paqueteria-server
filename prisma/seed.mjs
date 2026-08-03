@@ -205,7 +205,8 @@ async function main() {
 
   // ── 9. Admin user ────────────────────────────────
   console.log('Seeding admin user…');
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString('hex');
+  const hashedPassword = await bcrypt.hash(adminPassword, 10);
   await pool.query(
     `INSERT INTO users (id, email, username, password, full_name, role, is_active, created_at, updated_at)
      VALUES ($1, $2, $3, $4, $5, 'ADMIN', true, NOW(), NOW())
@@ -216,7 +217,11 @@ async function main() {
            updated_at = NOW()`,
     [ADMIN_ID, 'admin@paqueteria.com', 'admin', hashedPassword, 'Administrador'],
   );
-  console.log('  Created/updated admin user (admin / admin123)');
+  if (process.env.ADMIN_PASSWORD) {
+    console.log('  Admin user created/updated with password from ADMIN_PASSWORD env');
+  } else {
+    console.log(`  Admin user created/updated. Password temporal (cambiala al entrar): ${adminPassword}`);
+  }
 
   // ── Summary ──────────────────────────────────────
   const { rows: counts } = await pool.query(`

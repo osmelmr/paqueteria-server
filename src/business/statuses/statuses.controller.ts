@@ -24,9 +24,9 @@ export class StatusesController {
     return this.statuses.findAll();
   }
 
-  @Get(':name')
-  findByName(@Param('name') name: string) {
-    return this.statuses.findByName(name);
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.statuses.findById(id);
   }
 
   @Post()

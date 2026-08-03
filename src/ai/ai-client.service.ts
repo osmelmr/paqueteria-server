@@ -40,8 +40,6 @@ export class AiClientService {
         return parsed.packages;
       } catch (err) {
         lastError = err;
-        const status = (err as { status?: number }).status;
-        if (status !== 429 && status !== 503) throw err;
       }
     }
 

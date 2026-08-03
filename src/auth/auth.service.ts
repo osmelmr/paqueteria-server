@@ -23,6 +23,7 @@ export class AuthService {
 
     const valid = await bcryptCompare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
+    if (!user.isActive) throw new UnauthorizedException('Invalid credentials');
 
     const accessToken = this.generateAccessToken(user.id, user.role);
     const refreshToken = await this.generateRefreshToken(user.id);

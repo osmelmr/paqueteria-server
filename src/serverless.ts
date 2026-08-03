@@ -1,8 +1,10 @@
 import 'dotenv/config';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module.js';
 
 const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? '')
@@ -10,8 +12,10 @@ const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? '')
   .map((s) => s.trim())
   .filter(Boolean);
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+let appPromise: Promise<NestExpressApplication> | null = null;
+
+async function createApp() {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setGlobalPrefix('api/v1');
   app.use(cookieParser());
   app.use(helmet());
@@ -26,9 +30,17 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  await app.listen(process.env.PORT ?? 5000, '0.0.0.0');
-  console.log(
-    `Server is running on http://0.0.0.0:${process.env.PORT ?? 5000}`,
-  );
+  await app.init();
+  return app;
 }
-bootstrap();
+
+export default async function handler(
+  req: IncomingMessage,
+  res: ServerResponse,
+) {
+  if (!appPromise) {
+    appPromise = createApp();
+  }
+  const app = await appPromise;
+  app.getHttpAdapter().getInstance()(req, res);
+}

@@ -44,7 +44,9 @@ export class PackagesController {
     return this.packages.findAll({
       status,
       provinceId,
-      provinceIds: provinceIds ? provinceIds.split(',').filter(Boolean) : undefined,
+      provinceIds: provinceIds
+        ? provinceIds.split(',').filter(Boolean)
+        : undefined,
       municipeId,
       hbl,
       recipientId,

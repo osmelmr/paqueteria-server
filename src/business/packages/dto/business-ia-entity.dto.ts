@@ -1,4 +1,10 @@
-import { IsArray, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { GuideType } from '../../../../generated/prisma/enums.js';
 
 export class BusinessIaEntity {

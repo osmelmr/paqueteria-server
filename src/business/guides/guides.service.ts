@@ -38,14 +38,21 @@ export class GuidesService {
     return guide;
   }
 
-  async createManual(data: { name: string; agencyId: string; type: GuideType }) {
+  async createManual(data: {
+    name: string;
+    agencyId: string;
+    type: GuideType;
+  }) {
     return this.prisma.guide.create({
       data,
       include: { agency: true },
     });
   }
 
-  async update(id: string, data: { name?: string; agencyId?: string; type?: GuideType }) {
+  async update(
+    id: string,
+    data: { name?: string; agencyId?: string; type?: GuideType },
+  ) {
     const guide = await this.prisma.guide.findUnique({ where: { id } });
     if (!guide) throw new NotFoundException('Guide not found');
 

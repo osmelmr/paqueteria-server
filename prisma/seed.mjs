@@ -94,7 +94,26 @@ async function main() {
     console.log(rowCount > 0 ? `  Created province: ${name}` : `  Skipped province: ${name}`);
   }
 
-  // ── 4. Recipients ────────────────────────────────
+  // ── 4. Municipes ────────────────────────────────
+  console.log('Seeding municipes…');
+  const MUNICIPE_IDS = {
+    'Plaza de la Revolución': UUID(51),
+    'Habana Vieja':           UUID(52),
+    'Santiago de Cuba':       UUID(53),
+    'Holguín':                UUID(54),
+    'Camagüey':               UUID(55),
+    'Bayamo':                 UUID(56),
+  };
+  for (const [name, id] of Object.entries(MUNICIPE_IDS)) {
+    const { rowCount } = await pool.query(
+      `INSERT INTO municipes (id, name) VALUES ($1, $2)
+       ON CONFLICT (id) DO NOTHING`,
+      [id, name],
+    );
+    console.log(rowCount > 0 ? `  Created municipe: ${name}` : `  Skipped municipe: ${name}`);
+  }
+
+  // ── 5. Recipients ────────────────────────────────
   console.log('Seeding recipients…');
   const recipientData = [
     ['María García',     '87031200123', '555-1001'],
@@ -112,33 +131,28 @@ async function main() {
     console.log(rowCount > 0 ? `  Created recipient: ${fullName}` : `  Skipped recipient: ${fullName}`);
   }
 
-  // ── 5. Agencies ─────────────────────────────────
+  // ── 6. Agencies ─────────────────────────────────
   console.log('Seeding agencies…');
-  const AGENCY_TYPES = {
-    'DHL Cuba': 'AEREA',
-    'FedEx Cuba': 'AEREA',
-    'Correos Cuba': 'MARITIMA',
-  };
   for (const [name, id] of Object.entries(AGENCY_IDS)) {
     const { rowCount } = await pool.query(
-      `INSERT INTO agencies (id, name, type) VALUES ($1, $2, $3)
+      `INSERT INTO agencies (id, name) VALUES ($1, $2)
        ON CONFLICT (id) DO NOTHING`,
-      [id, name, AGENCY_TYPES[name]],
+      [id, name],
     );
     console.log(rowCount > 0 ? `  Created agency: ${name}` : `  Skipped agency: ${name}`);
   }
 
-  // ── 6. Guide ─────────────────────────────────────
+  // ── 7. Guide ─────────────────────────────────────
   console.log('Seeding guide…');
   const { rowCount: guideRc } = await pool.query(
-    `INSERT INTO guides (id, external_ref, agency_id, uploaded_at)
-     VALUES ($1, 'EXT-2026-001', $2, '2026-07-20T10:00:00Z')
+    `INSERT INTO guides (id, name, agency_id, type, uploaded_at)
+     VALUES ($1, 'EXT-2026-001', $2, 'AEREA', '2026-07-20T10:00:00Z')
      ON CONFLICT (id) DO NOTHING`,
     [GUIDE_ID, AGENCY_IDS['DHL Cuba']],
   );
   console.log(guideRc > 0 ? '  Created guide: EXT-2026-001' : '  Skipped guide');
 
-  // ── 7. Packages ──────────────────────────────────
+  // ── 8. Packages ──────────────────────────────────
   console.log('Seeding packages…');
   const packages = [
     {
@@ -189,7 +203,7 @@ async function main() {
     console.log(`  Created package: ${id} (${p.hbls.join(', ')})`);
   }
 
-  // ── 8. Admin user ────────────────────────────────
+  // ── 9. Admin user ────────────────────────────────
   console.log('Seeding admin user…');
   const hashedPassword = await bcrypt.hash('admin123', 10);
   await pool.query(

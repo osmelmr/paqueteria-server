@@ -21,7 +21,9 @@ export class StatisticsService {
         this.prisma.guide.count(),
         this.prisma.package.count({
           where: {
-            status: { name: { notIn: ['entregado', 'perdido'], mode: 'insensitive' } },
+            status: {
+              name: { notIn: ['entregado', 'perdido'], mode: 'insensitive' },
+            },
           },
         }),
         this.prisma.route.findMany({

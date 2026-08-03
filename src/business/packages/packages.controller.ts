@@ -29,6 +29,7 @@ export class PackagesController {
   findAll(
     @Query('status') status?: string,
     @Query('provinceId') provinceId?: string,
+    @Query('provinceIds') provinceIds?: string,
     @Query('municipeId') municipeId?: string,
     @Query('hbl') hbl?: string,
     @Query('recipientId') recipientId?: string,
@@ -43,6 +44,7 @@ export class PackagesController {
     return this.packages.findAll({
       status,
       provinceId,
+      provinceIds: provinceIds ? provinceIds.split(',').filter(Boolean) : undefined,
       municipeId,
       hbl,
       recipientId,

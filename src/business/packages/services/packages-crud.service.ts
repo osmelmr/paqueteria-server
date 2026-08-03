@@ -32,6 +32,7 @@ export class PackagesService {
   async findAll(filters: {
     status?: string;
     provinceId?: string;
+    provinceIds?: string[];
     municipeId?: string;
     hbl?: string;
     recipientId?: string;
@@ -45,14 +46,18 @@ export class PackagesService {
   }) {
     const where: any = {};
     if (filters.status) where.statusId = filters.status;
-    if (filters.provinceId) where.provinceId = filters.provinceId;
+    if (filters.provinceIds?.length) {
+      where.provinceId = { in: filters.provinceIds };
+    } else if (filters.provinceId) {
+      where.provinceId = filters.provinceId;
+    }
     if (filters.municipeId) where.municipeId = filters.municipeId;
     if (filters.alert !== undefined) where.alert = filters.alert;
     if (filters.locationId) where.locationId = filters.locationId;
     if (filters.agencyId || filters.guideType) {
       where.guide = {
         ...(filters.agencyId && { agencyId: filters.agencyId }),
-        ...(filters.guideType && { agency: { type: filters.guideType } }),
+        ...(filters.guideType && { type: filters.guideType }),
       };
     }
     if (filters.statusDate) {

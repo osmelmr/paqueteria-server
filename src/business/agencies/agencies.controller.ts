@@ -26,12 +26,12 @@ export class AgenciesController {
 
   @Post()
   create(@Body() dto: CreateAgencyDto) {
-    return this.agencies.create(dto.name, dto.type);
+    return this.agencies.create(dto.name);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateAgencyDto) {
-    return this.agencies.update(id, dto.name, dto.type);
+    return this.agencies.update(id, dto.name);
   }
 
   @Delete(':id')

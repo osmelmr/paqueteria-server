@@ -4,7 +4,7 @@ import { PackageRowDto } from './package-row.dto.js';
 
 export class ConfirmGuideDto {
   @IsString()
-  externalRef: string;
+  name: string;
 
   @IsString()
   agencyId: string;

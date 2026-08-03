@@ -290,10 +290,10 @@ describe('Business Modules (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/guides')
         .set('Authorization', `Bearer ${token}`)
-        .send({ externalRef: 'REF-001', agencyId })
+        .send({ name: 'REF-001', agencyId })
         .expect(201);
 
-      expect(res.body.externalRef).toBe('REF-001');
+      expect(res.body.name).toBe('REF-001');
       guideId = res.body.id;
     });
 
@@ -320,7 +320,7 @@ describe('Business Modules (e2e)', () => {
       await request(app.getHttpServer())
         .post('/guides/confirm')
         .set('Authorization', `Bearer ${token}`)
-        .send({ externalRef: 'REF-002', agency: 'Test', packages: [] })
+        .send({ name: 'REF-002', agency: 'Test', packages: [] })
         .expect(500);
     });
   });

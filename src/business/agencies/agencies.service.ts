@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { GuideType } from '../../../generated/prisma/enums.js';
 
 @Injectable()
 export class AgenciesService {
@@ -16,17 +15,16 @@ export class AgenciesService {
     return agency;
   }
 
-  async create(name: string, type: GuideType) {
-    return this.prisma.agency.create({ data: { name, type } });
+  async create(name: string) {
+    return this.prisma.agency.create({ data: { name } });
   }
 
-  async update(id: string, name?: string, type?: GuideType) {
+  async update(id: string, name?: string) {
     await this.findById(id);
     return this.prisma.agency.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
-        ...(type !== undefined && { type }),
       },
     });
   }

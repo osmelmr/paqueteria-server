@@ -285,7 +285,11 @@ y como ambos servicios pueden procesar de lugares diferentes es mejor que ambos 
       if (guide) guideId = entities.guideId;
     } else if (entities.guide) {
       const created = await this.prisma.guide.create({
-        data: { externalRef: entities.guide, agencyId: entities.agencyId },
+        data: {
+          name: entities.guide,
+          agencyId: entities.agencyId,
+          type: entities.guideType,
+        },
       });
       guideId = created.id;
     }

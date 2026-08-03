@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { PackageRowDto } from './dto/package-row.dto.js';
 import { ConfirmGuideDto } from './dto/confirm-guide.dto.js';
+import { GuideType } from '../../../generated/prisma/enums.js';
 
 @Injectable()
 export class GuidesService {
@@ -37,14 +38,14 @@ export class GuidesService {
     return guide;
   }
 
-  async createManual(data: { externalRef: string; agencyId: string }) {
+  async createManual(data: { name: string; agencyId: string; type: GuideType }) {
     return this.prisma.guide.create({
       data,
       include: { agency: true },
     });
   }
 
-  async update(id: string, data: { externalRef?: string; agencyId?: string }) {
+  async update(id: string, data: { name?: string; agencyId?: string; type?: GuideType }) {
     const guide = await this.prisma.guide.findUnique({ where: { id } });
     if (!guide) throw new NotFoundException('Guide not found');
 

@@ -1,10 +1,6 @@
-import { IsEnum, IsString } from 'class-validator';
-import { GuideType } from '../../../../generated/prisma/enums.js';
+import { IsString } from 'class-validator';
 
 export class CreateAgencyDto {
   @IsString()
   name: string;
-
-  @IsEnum(GuideType)
-  type: GuideType;
 }

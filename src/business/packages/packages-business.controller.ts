@@ -1,10 +1,13 @@
-import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { BusinessService } from './services/business.service.js';
 import { BulkAiEntities } from './dto/business-ia-entity.dto.js';
 import { UpdateStatusService } from './services/update-status.service.js';
 import { PackageAlertService } from './services/package-alert.service.js';
 
 @Controller('business')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class BusinessController {
   constructor(
     private readonly businessService: BusinessService,

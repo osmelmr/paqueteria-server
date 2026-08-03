@@ -15,9 +15,9 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 const REFRESH_COOKIE = 'refresh_token';
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true,
+  secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
-  path: '/auth',
+  path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -52,7 +52,7 @@ export class AuthController {
     const raw = req.cookies?.[REFRESH_COOKIE];
     if (raw) {
       await this.auth.logout(raw);
-      res.clearCookie(REFRESH_COOKIE, { path: '/auth' });
+      res.clearCookie(REFRESH_COOKIE, { path: '/' });
     }
     return { message: 'Logged out' };
   }

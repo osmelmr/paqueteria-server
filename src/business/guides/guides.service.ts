@@ -44,6 +44,17 @@ export class GuidesService {
     });
   }
 
+  async update(id: string, data: { externalRef?: string; agencyId?: string }) {
+    const guide = await this.prisma.guide.findUnique({ where: { id } });
+    if (!guide) throw new NotFoundException('Guide not found');
+
+    return this.prisma.guide.update({
+      where: { id },
+      data,
+      include: { agency: true },
+    });
+  }
+
   async delete(id: string) {
     const guide = await this.prisma.guide.findUnique({ where: { id } });
     if (!guide) throw new NotFoundException('Guide not found');

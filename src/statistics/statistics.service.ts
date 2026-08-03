@@ -9,14 +9,20 @@ export class StatisticsService {
     const [almacenados, entregados, guiasActivas, enEspera, ultimasRutas] =
       await Promise.all([
         this.prisma.package.count({
-          where: { status: { name: 'almacenado' } },
+          where: {
+            status: { name: { equals: 'almacenado', mode: 'insensitive' } },
+          },
         }),
         this.prisma.package.count({
-          where: { status: { name: 'entregado' } },
+          where: {
+            status: { name: { equals: 'entregado', mode: 'insensitive' } },
+          },
         }),
         this.prisma.guide.count(),
         this.prisma.package.count({
-          where: { status: { name: { notIn: ['entregado', 'perdido'] } } },
+          where: {
+            status: { name: { notIn: ['entregado', 'perdido'], mode: 'insensitive' } },
+          },
         }),
         this.prisma.route.findMany({
           orderBy: { departureDate: 'desc' },

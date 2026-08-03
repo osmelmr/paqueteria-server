@@ -8,9 +8,8 @@ export class CreateRouteDto {
   @IsString()
   description?: string;
 
-  @IsOptional()
   @IsDateString()
-  departureDate?: string;
+  departureDate!: string;
 
   @IsString()
   vehicleId!: string;

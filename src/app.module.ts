@@ -16,6 +16,7 @@ import { CommonModule } from './common/common.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { RoutesModule } from './business/routes/routes.module.js';
 import { StatisticsModule } from './statistics/statistics.module.js';
+import { AppController } from './app.controller.js';
 
 @Module({
   imports: [
@@ -47,5 +48,6 @@ import { StatisticsModule } from './statistics/statistics.module.js';
       useClass: ThrottlerGuard,
     },
   ],
+  controllers: [AppController],
 })
 export class AppModule {}

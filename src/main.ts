@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import helmetImport from 'helmet';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, RequestMethod } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 
@@ -18,7 +18,9 @@ const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? '')
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api/v1', {
+    exclude: [{ path: '/', method: RequestMethod.GET }],
+  });
   app.use(cookieParser());
   app.use(helmet());
   app.enableCors({

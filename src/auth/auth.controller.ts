@@ -5,6 +5,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
@@ -44,7 +45,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const raw = req.cookies?.[REFRESH_COOKIE];
-    if (!raw) return res.status(401).json({ message: 'Unauthorized' });
+    if (!raw) throw new UnauthorizedException();
     const result = await this.auth.refresh(raw);
     res.cookie(REFRESH_COOKIE, result.refreshToken, COOKIE_OPTIONS);
     return { accessToken: result.accessToken, user: result.user };

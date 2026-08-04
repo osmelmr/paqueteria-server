@@ -1,9 +1,15 @@
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
-import helmet = require('helmet');
+import helmetImport from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
+
+// Workaround: los tipos de helmet no son compatibles con moduleResolution NodeNext/Node16.
+// En runtime sí es una función invocable, así que forzamos el tipo.
+const helmet = helmetImport as unknown as (
+  options?: Record<string, unknown>,
+) => (req: unknown, res: unknown, next: unknown) => void;
 
 const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? '')
   .split(',')
@@ -14,7 +20,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/v1');
   app.use(cookieParser());
-  app.use(helmet()); // ✅ Quita los paréntesis aquí
+  app.use(helmet());
   app.enableCors({
     origin: CORS_ORIGINS.length > 0 ? CORS_ORIGINS : true,
     credentials: true,

@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
-import * as helmet from 'helmet';
+import helmet = require('helmet');
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';

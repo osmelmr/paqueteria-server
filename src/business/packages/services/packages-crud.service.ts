@@ -43,7 +43,10 @@ export class PackagesService {
     locationId?: string;
     agencyId?: string;
     guideType?: 'AEREA' | 'MARITIMA';
+    page?: number;
+    limit?: number;
   }) {
+    console.log(filters);
     const where: any = {};
     if (filters.status) where.statusId = filters.status;
     if (filters.provinceIds?.length) {
@@ -89,12 +92,45 @@ export class PackagesService {
         },
       ];
     }
+    // 2. Calcular el offset (skip)
+    const page = filters.page || 1;
+    const limit = filters.limit || 10;
+    const skip = (page - 1) * limit;
 
-    return this.prisma.package.findMany({
-      where,
-      include: normalizePackageInclude(true),
-      orderBy: { createdAt: 'desc' },
+    // 3. Hacer dos consultas: una para los datos y otra para el total
+    const [items, total] = await Promise.all([
+      this.prisma.package.findMany({
+        where,
+        include: normalizePackageInclude(true),
+        orderBy: { createdAt: 'desc' },
+        skip, // Cuántos registros saltar
+        take: limit, // Cuántos registros tomar
+      }),
+      this.prisma.package.count({ where }), // Total de registros que coinciden con los filtros
+    ]);
+    console.log({
+      items,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPreviousPage: page > 1,
+      },
     });
+    // 4. Devolver el resultado paginado
+    return {
+      items,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 
   async findById(id: string) {
@@ -139,7 +175,11 @@ export class PackagesService {
     const { hbls, ...packageData } = data;
 
     return this.prisma.$transaction(async (tx) => {
-      await this.validateReferences(tx, packageData.statusId, packageData.locationId);
+      await this.validateReferences(
+        tx,
+        packageData.statusId,
+        packageData.locationId,
+      );
       if (hbls && hbls.length > 0) {
         await this.assertHblsAvailable(tx, hbls);
       }
@@ -298,19 +338,27 @@ export class PackagesService {
 
   private async validateReferences(
     tx: {
-      status: { findUnique: (args: { where: { id: string } }) => Promise<unknown> };
-      location: { findUnique: (args: { where: { id: string } }) => Promise<unknown> };
+      status: {
+        findUnique: (args: { where: { id: string } }) => Promise<unknown>;
+      };
+      location: {
+        findUnique: (args: { where: { id: string } }) => Promise<unknown>;
+      };
     },
     statusId: string,
     locationId?: string | null,
   ) {
     if (statusId) {
       const status = await tx.status.findUnique({ where: { id: statusId } });
-      if (!status) throw new BadRequestException(`Status inválido: ${statusId}`);
+      if (!status)
+        throw new BadRequestException(`Status inválido: ${statusId}`);
     }
     if (locationId) {
-      const location = await tx.location.findUnique({ where: { id: locationId } });
-      if (!location) throw new BadRequestException(`Ubicación inválida: ${locationId}`);
+      const location = await tx.location.findUnique({
+        where: { id: locationId },
+      });
+      if (!location)
+        throw new BadRequestException(`Ubicación inválida: ${locationId}`);
     }
   }
 

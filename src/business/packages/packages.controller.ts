@@ -41,9 +41,23 @@ export class PackagesController {
     @Query('locationId') locationId?: string,
     @Query('agencyId') agencyId?: string,
     @Query('guideType') guideType?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
+    console.log('algo');
     if (guideType && !['AEREA', 'MARITIMA'].includes(guideType)) {
       throw new BadRequestException('guideType inválido');
+    }
+    // Validar y convertir a números
+    const pageNumber = page ? parseInt(page, 10) : 1;
+    const limitNumber = limit ? parseInt(limit, 10) : 10;
+
+    // Validar límites razonables
+    if (pageNumber < 1) {
+      throw new BadRequestException('page debe ser mayor a 0');
+    }
+    if (limitNumber < 1 || limitNumber > 100) {
+      throw new BadRequestException('limit debe estar entre 1 y 100');
     }
     return this.packages.findAll({
       status,
@@ -61,6 +75,8 @@ export class PackagesController {
       locationId: locationId || undefined,
       agencyId: agencyId || undefined,
       guideType: (guideType || undefined) as 'AEREA' | 'MARITIMA',
+      page: pageNumber,
+      limit: limitNumber,
     });
   }
 

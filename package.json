@@ -14,7 +14,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && prisma migrate deploy && pnpm seed && nest build",
+    "vercel-build": "prisma generate && prisma migrate deploy && nest build",
     "seed": "pnpm exec prisma db seed",
     "db:reset": "pnpm exec prisma migrate reset --force && pnpm run seed",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

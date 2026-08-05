@@ -46,7 +46,6 @@ export class PackagesService {
     page?: number;
     limit?: number;
   }) {
-    console.log(filters);
     const where: any = {};
     if (filters.status) where.statusId = filters.status;
     if (filters.provinceIds?.length) {
@@ -113,24 +112,12 @@ export class PackagesService {
       select: { hblCode: true },
     });
 
-    const allHbls = hbls.map((hbl) => hbl.hblCode);
+    const allHbls: string[] = hbls.map((hbl) => hbl.hblCode);
 
-    console.log({
-      items,
-      allHbls,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page < Math.ceil(total / limit),
-        hasPreviousPage: page > 1,
-      },
-    });
     // 4. Devolver el resultado paginado
     return {
       items,
-      hbls,
+      allHbls,
       pagination: {
         total,
         page,

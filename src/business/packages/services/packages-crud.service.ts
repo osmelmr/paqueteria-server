@@ -108,8 +108,16 @@ export class PackagesService {
       }),
       this.prisma.package.count({ where }), // Total de registros que coinciden con los filtros
     ]);
+    const hbls = await this.prisma.packageHbl.findMany({
+      where,
+      select: { hblCode: true },
+    });
+
+    const allHbls = hbls.map((hbl) => hbl.hblCode);
+
     console.log({
       items,
+      allHbls,
       pagination: {
         total,
         page,
@@ -122,6 +130,7 @@ export class PackagesService {
     // 4. Devolver el resultado paginado
     return {
       items,
+      hbls,
       pagination: {
         total,
         page,

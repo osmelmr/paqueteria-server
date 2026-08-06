@@ -44,13 +44,12 @@ export class PackagesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    console.log('algo');
     if (guideType && !['AEREA', 'MARITIMA'].includes(guideType)) {
       throw new BadRequestException('guideType inválido');
     }
     // Validar y convertir a números
     const pageNumber = page ? parseInt(page, 10) : 1;
-    const limitNumber = limit ? parseInt(limit, 10) : 10;
+    const limitNumber = limit ? parseInt(limit, 10) : 50;
 
     // Validar límites razonables
     if (pageNumber < 1) {

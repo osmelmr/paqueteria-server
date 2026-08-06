@@ -91,33 +91,42 @@ export class PackagesService {
         },
       ];
     }
-    // 2. Calcular el offset (skip)
     const page = filters.page || 1;
-    const limit = filters.limit || 10;
+    const limit = filters.limit || 50;
     const skip = (page - 1) * limit;
 
-    // 3. Hacer dos consultas: una para los datos y otra para el total
-    const [items, total] = await Promise.all([
+    // ✅ Optimizado: solo obtener IDs de todos los paquetes filtrados
+    const [items, total, allPackageIds] = await Promise.all([
       this.prisma.package.findMany({
         where,
         include: normalizePackageInclude(true),
         orderBy: { createdAt: 'desc' },
-        skip, // Cuántos registros saltar
-        take: limit, // Cuántos registros tomar
+        skip,
+        take: limit,
       }),
-      this.prisma.package.count({ where }), // Total de registros que coinciden con los filtros
+      this.prisma.package.count({ where }),
+      this.prisma.package.findMany({
+        where,
+        select: { id: true }, // 👈 Solo IDs, no datos completos
+      }),
     ]);
+
+    // ✅ Extraer IDs de forma limpia
+    const ids = allPackageIds.map((pkg) => pkg.id);
+
+    // ✅ Obtener HBLs de esos paquetes
     const hbls = await this.prisma.packageHbl.findMany({
-      where,
+      where: {
+        packageId: { in: ids }, // 👈 packageId es más eficiente que package: { id: { in: ids } }
+      },
       select: { hblCode: true },
     });
 
-    const allHbls: string[] = hbls.map((hbl) => hbl.hblCode);
+    const allHbls = hbls.map((hbl) => hbl.hblCode);
 
-    // 4. Devolver el resultado paginado
     return {
       items,
-      allHbls,
+      hbls: allHbls,
       pagination: {
         total,
         page,

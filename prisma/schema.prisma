@@ -238,11 +238,30 @@ model RouteDriver {
   @@unique([routeId, driverId])
   @@map("route_drivers")
 }
+
 /*
-necesito agregar algo mas al esquema y es que me es necesario saber al presionar un 
-boton por todos los estados que ha pasado un paquete y la localizacion en cada momento 
-entonces necesito un sistema que dado el id de un paquete me permita conocer todas las 
-relaciones de estados y locaciones que estan relacionadas valga la redundancia a ese paquete.
-bueno lo hice a mano para esto lo que hice fue modificar la tabla package status history para 
-que tambien incluyera la locacion
+necesito realizar un cambio en este esquema de prisma 
+tengo un problema y es que al tener el estado y la ubicacion separados a la hora de manejarlos 
+puedo tener estados como en espera y ubicacion almacen habana ordenando, cliente
+donde la relacion estado ubicacion es incoherente y esto solo porque un usuario sin querer
+cambio el estado de un paquete y olvido cambiar su ubicacion para esto quisiera poder 
+1 mantener los estados y la ubicacion separados de lo contrario si estuviesen en una sola tabla 
+tendria el mismo estado repetido para cada ubicacion ademas para futuras apis con las que trabajaran 3ros
+ es mejor que siga teniendo asociado el estado directamente al paquete separado de la ubicacion 
+ para esto decidi realizar la siguiente configuracion
+ yo tengo una tabla paquete este debe tener un estado y una ubicacion pero debo tener un historial del 
+ flujo de estos sobre el paquete pero quiero tener relacionados los estados a las ubicaciones para que el usuario 
+ bueda escoger sin usar dos selects y crear las combinaciones que quiera entonces
+ tengo la tabla paquetes con una relacion directa a el ultimo estado y ubcacion que se le atribuyo quisiera 
+ tener una tabla ya lo tengo pero aqui viene lo nuevo 
+ quiero una tabla que relacione de muchos a muchos los estados y las ubicaciones y esta este asociada a la tabla
+ de historial y esta a la tabla paquetes
+ que quiero lograr que el usuario tenga la libertad de crear estados ubicaciones y ademas sus combinaciones 
+ favorables para no perter tiempo escogiendo en dos selects asi al actalizar un estado de un paquete llegara 
+ una relacion estado ubicacion se agregara a el ultimo estado y ultima ubicacion del paquete y la relacion al historial
+ ademas de esto habria que 1 crear una nueva pagina para crear estados ubicaciones y relaciones al mismo tiempo
+ habria que modificar los lugares en que se edita el estado de un paquete y dejar un select pero esta vez este 
+ accede a esta nueva tabla
+ ahora esta edicion manda al backend una unica id la nueva loguica del backend seria validar asociarla 
+ a el historial y a el ultimo estado y ubicacion o el estado y la ubicacion activa del paquete
 */

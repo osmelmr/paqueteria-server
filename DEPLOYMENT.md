@@ -69,7 +69,7 @@ node prisma/seed.mjs
    | `DATABASE_URL` | connection string de Neon (con `?sslmode=require`) |
    | `JWT_SECRET` | el secreto de `.env` local (≥ 32 caracteres) |
    | `GEMINI_API_KEY` | la API key de Gemini (ver sección 6) |
-   | `CORS_ORIGIN` | `https://paqueteria-client.vercel.app` |
+   | `CORS_ORIGIN` | `https://paqueteria-client.vercel.app` (opcional: el cliente ya consume vía proxy same-origin; se mantiene por compatibilidad con llamadas directas) |
    | `ADMIN_PASSWORD` | la misma usada en el seed (solo si vas a re-sembrar) |
 
 4. Deploy. La URL quedará parecida a `https://paqueteria-server.vercel.app`.
@@ -83,15 +83,15 @@ node prisma/seed.mjs
 
 1. Vercel → **Add New Project** → importa `osmelmr/paqueteria-client`.
 2. Framework Preset: **Vite** (build `pnpm build`, output `dist`).
-3. En **Environment Variables** agrega:
-
-   | Variable | Valor |
-   |---|---|
-   | `VITE_API_URL` | `https://paqueteria-server.vercel.app` |
+3. **No definas `VITE_API_URL`**: el `vercel.json` del cliente proxya `/api/v1/*` hacia
+   `https://paqueteria-server.vercel.app`, de modo que todo es same-origin
+   (las cookies `httpOnly` funcionan con `SameSite=Lax` y no hay CORS).
 
 4. Deploy. La URL quedará parecida a `https://paqueteria-client.vercel.app`.
 
-> `vercel.json` del cliente añade un rewrite SPA: recargar rutas como `/packages` no devuelve 404.
+> `vercel.json` del cliente:
+> - Proxya `/api/v1/*` → `https://paqueteria-server.vercel.app/api/v1/*`
+> - Añade un rewrite SPA: recargar rutas como `/packages` o `/login` no devuelve 404.
 
 ## 6. API key de Gemini
 

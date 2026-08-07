@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import * as ExcelJS from 'exceljs';
+import ExcelJS from 'exceljs';
 
 @Injectable()
 export class GenerateService {

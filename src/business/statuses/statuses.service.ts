@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { normalizeText } from '../../common/utils/normalize-text.js';
 import { CreateStatusDto } from './dto/create-status.dto.js';
@@ -31,7 +35,8 @@ export class StatusesService {
     const existing = await this.prisma.status.findFirst({
       where: { name: { equals: name, mode: 'insensitive' } },
     });
-    if (existing) throw new ConflictException('Ya existe un estado con ese nombre');
+    if (existing)
+      throw new ConflictException('Ya existe un estado con ese nombre');
     return this.prisma.status.create({ data: { name } });
   }
 
@@ -41,7 +46,8 @@ export class StatusesService {
     const existing = await this.prisma.status.findFirst({
       where: { name: { equals: name, mode: 'insensitive' }, NOT: { id } },
     });
-    if (existing) throw new ConflictException('Ya existe un estado con ese nombre');
+    if (existing)
+      throw new ConflictException('Ya existe un estado con ese nombre');
     return this.prisma.status.update({
       where: { id },
       data: { name },

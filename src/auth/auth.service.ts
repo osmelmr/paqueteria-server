@@ -63,7 +63,7 @@ export class AuthService {
     });
     if (!user || !user.isActive) throw new UnauthorizedException();
 
-    await this.prisma.refreshToken.delete({ where: { id: stored.id } });
+    await this.prisma.refreshToken.deleteMany({ where: { id: stored.id } });
 
     const accessToken = this.generateAccessToken(user.id, user.role);
     const refreshToken = await this.generateRefreshToken(user.id);

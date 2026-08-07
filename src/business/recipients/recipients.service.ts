@@ -14,7 +14,10 @@ export class RecipientsService {
   }) {
     const { search, idCard, phone } = filters ?? {};
     const page = Math.max(1, Math.floor(filters?.page ?? 1) || 1);
-    const limit = Math.min(100, Math.max(1, Math.floor(filters?.limit ?? 10) || 10));
+    const limit = Math.min(
+      100,
+      Math.max(1, Math.floor(filters?.limit ?? 10) || 10),
+    );
     const skip = (page - 1) * limit;
 
     const where: any = {};

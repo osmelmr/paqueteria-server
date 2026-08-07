@@ -17,6 +17,7 @@ import { AiModule } from './ai/ai.module.js';
 import { RoutesModule } from './business/routes/routes.module.js';
 import { StatisticsModule } from './statistics/statistics.module.js';
 import { AppController } from './app.controller.js';
+import { GenerateModule } from './generate/generate.module.js';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AppController } from './app.controller.js';
     AiModule,
     RoutesModule,
     StatisticsModule,
+    GenerateModule,
   ],
   providers: [
     {

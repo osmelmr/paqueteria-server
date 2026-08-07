@@ -1,1 +1,0 @@
-echo "ALTER TABLE ""municipes"" ADD COLUMN ""header"" TEXT;" > prisma\migrations\20260807000000_add_header_to_municipes\migration.sql

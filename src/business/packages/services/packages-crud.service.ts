@@ -34,6 +34,7 @@ export class PackagesService {
     provinceId?: string;
     provinceIds?: string[];
     municipeId?: string;
+    header?: boolean;
     hbl?: string;
     recipientId?: string;
     guideId?: string;
@@ -53,7 +54,11 @@ export class PackagesService {
     } else if (filters.provinceId) {
       where.provinceId = filters.provinceId;
     }
-    if (filters.municipeId) where.municipeId = filters.municipeId;
+    if (filters.header) {
+      where.municipe = { header: true };
+    } else if (filters.municipeId) {
+      where.municipeId = filters.municipeId;
+    }
     if (filters.alert !== undefined) where.alert = filters.alert;
     if (filters.locationId) where.locationId = filters.locationId;
     if (filters.agencyId || filters.guideType) {
@@ -170,6 +175,7 @@ export class PackagesService {
     weight?: number;
     content?: string;
     arrivalDate?: string;
+    statusDate?: string;
     statusId: string;
     locationId: string;
     anotations?: string;
@@ -177,7 +183,7 @@ export class PackagesService {
     alertDescription?: string;
     hbls?: string[];
   }) {
-    const { hbls, ...packageData } = data;
+    const { hbls, statusDate: _statusDate, ...packageData } = data;
 
     return this.prisma.$transaction(async (tx) => {
       await this.validateReferences(
@@ -230,6 +236,7 @@ export class PackagesService {
       weight?: number;
       content?: string;
       arrivalDate?: string;
+      statusDate?: string;
       statusId?: string;
       locationId?: string;
       anotations?: string;
@@ -238,7 +245,7 @@ export class PackagesService {
       hbls?: string[];
     },
   ) {
-    const { hbls, ...packageData } = data;
+    const { hbls, statusDate: _statusDate, ...packageData } = data;
 
     return this.prisma.$transaction(async (tx) => {
       const existing = await tx.package.findUnique({ where: { id } });
@@ -272,7 +279,10 @@ export class PackagesService {
         },
       });
 
-      if (packageData.statusId) {
+      const nextStatusId = packageData.statusId ?? existing.statusId;
+      const statusChanged = nextStatusId !== existing.statusId;
+
+      if (statusChanged) {
         const historyLocationId =
           packageData.locationId ?? existing.locationId ?? null;
         if (!historyLocationId) {
@@ -283,10 +293,23 @@ export class PackagesService {
         await tx.packageStatusHistory.create({
           data: {
             packageId: id,
-            statusId: packageData.statusId,
+            statusId: nextStatusId,
             locationId: historyLocationId,
+            ...(data.statusDate ? { createdAt: new Date(data.statusDate) } : {}),
           },
         });
+      } else if (data.statusDate) {
+        // Sin cambio de estado: actualizar la fecha del ultimo cambio registrado
+        const latest = await tx.packageStatusHistory.findFirst({
+          where: { packageId: id },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (latest) {
+          await tx.packageStatusHistory.update({
+            where: { id: latest.id },
+            data: { createdAt: new Date(data.statusDate) },
+          });
+        }
       }
 
       return tx.package.findUnique({
@@ -296,7 +319,12 @@ export class PackagesService {
     });
   }
 
-  async updateStatus(id: string, statusId: string, locationId?: string) {
+  async updateStatus(
+    id: string,
+    statusId: string,
+    locationId?: string,
+    statusDate?: string,
+  ) {
     const pkg = await this.prisma.package.findUnique({ where: { id } });
     if (!pkg) throw new NotFoundException('Package not found');
 
@@ -321,6 +349,7 @@ export class PackagesService {
           packageId: updated.id,
           statusId,
           locationId: historyLocationId,
+          ...(statusDate ? { createdAt: new Date(statusDate) } : {}),
         },
       });
 

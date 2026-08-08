@@ -22,15 +22,23 @@ export class MunicipesService {
     return municipe;
   }
 
-  async create(name: string) {
-    return this.prisma.municipe.create({ data: { name: normalizeText(name) } });
+  async create(name: string, header?: boolean) {
+    return this.prisma.municipe.create({
+      data: {
+        name: normalizeText(name),
+        ...(header !== undefined && { header }),
+      },
+    });
   }
 
-  async update(id: string, name: string) {
+  async update(id: string, name: string, header?: boolean) {
     await this.findById(id);
     return this.prisma.municipe.update({
       where: { id },
-      data: { name: normalizeText(name) },
+      data: {
+        name: normalizeText(name),
+        ...(header !== undefined && { header }),
+      },
     });
   }
 

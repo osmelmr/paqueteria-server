@@ -29,12 +29,19 @@ export class BusinessController {
 
   @Post('update-status-bulk')
   async updateStatusBulk(
-    @Body() body: { hbls: string[]; statusId?: string; locationId?: string },
+    @Body()
+    body: {
+      hbls: string[];
+      statusId?: string;
+      locationId?: string;
+      statusDate?: string;
+    },
   ) {
     return this.updateStatusService.updateStatusByBulk(
       body.hbls,
       body.statusId,
       body.locationId,
+      body.statusDate,
     );
   }
 

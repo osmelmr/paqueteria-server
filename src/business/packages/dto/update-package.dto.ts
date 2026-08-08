@@ -41,6 +41,10 @@ export class UpdatePackageDto {
   arrivalDate?: string;
 
   @IsOptional()
+  @IsDateString()
+  statusDate?: string;
+
+  @IsOptional()
   @IsString()
   statusId?: string;
 

@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class UpdatePackageStatusDto {
   @IsString()
@@ -7,4 +7,8 @@ export class UpdatePackageStatusDto {
   @IsOptional()
   @IsString()
   locationId?: string;
+
+  @IsOptional()
+  @IsDateString()
+  statusDate?: string;
 }

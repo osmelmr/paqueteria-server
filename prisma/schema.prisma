@@ -67,7 +67,7 @@ model Guide {
   agency       Agency    @relation(fields: [agencyId], references: [id])
   packages     Package[]
   type         GuideType
-
+  active       Boolean   @default(true) @map("active")
   @@map("guides")
 }
 

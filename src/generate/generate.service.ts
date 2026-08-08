@@ -9,7 +9,7 @@ export class GenerateService {
   async generateExcel(
     routeId: string,
     deliveredBy?: string,
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     if (!routeId) {
       throw new NotFoundException('El ID de la ruta es requerido');
     }
@@ -215,6 +215,12 @@ export class GenerateService {
 
     // Generar buffer y retornar con el tipo correcto
     const buffer = await workbook.xlsx.writeBuffer();
-    return Buffer.from(buffer);
+    const safeName = route.name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    const filename = `${safeName || 'ruta'}.xlsx`;
+    return { buffer: Buffer.from(buffer), filename };
   }
 }

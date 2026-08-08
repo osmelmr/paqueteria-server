@@ -23,7 +23,7 @@ export class GenerateController {
     @Res() res: Response,
   ) {
     try {
-      const buffer = await this.generateService.generateExcel(
+      const { buffer, filename } = await this.generateService.generateExcel(
         id,
         (req.user as { fullName?: string } | undefined)?.fullName,
       );
@@ -34,7 +34,7 @@ export class GenerateController {
       );
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename=paquetes_ruta_${id}.xlsx`,
+        `attachment; filename="${filename}"`,
       );
       res.setHeader('Content-Length', buffer.length);
 

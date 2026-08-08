@@ -40,6 +40,10 @@ export class CreatePackageDto {
   @IsDateString()
   arrivalDate?: string;
 
+  @IsOptional()
+  @IsDateString()
+  statusDate?: string;
+
   @IsString()
   statusId: string;
 

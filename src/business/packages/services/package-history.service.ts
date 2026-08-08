@@ -15,7 +15,7 @@ export class PackageHistoryService {
     return this.prisma.packageStatusHistory.findMany({
       where: { packageId },
       include: { status: true, location: true },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }

@@ -32,6 +32,7 @@ export class PackagesController {
     @Query('provinceId') provinceId?: string,
     @Query('provinceIds') provinceIds?: string,
     @Query('municipeId') municipeId?: string,
+    @Query('header') header?: string,
     @Query('hbl') hbl?: string,
     @Query('recipientId') recipientId?: string,
     @Query('guideId') guideId?: string,
@@ -65,6 +66,7 @@ export class PackagesController {
         ? provinceIds.split(',').filter(Boolean)
         : undefined,
       municipeId,
+      header: header !== undefined ? header === 'true' : undefined,
       hbl,
       recipientId,
       guideId,
@@ -106,7 +108,12 @@ export class PackagesController {
 
   @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body() dto: UpdatePackageStatusDto) {
-    return this.packages.updateStatus(id, dto.statusId, dto.locationId);
+    return this.packages.updateStatus(
+      id,
+      dto.statusId,
+      dto.locationId,
+      dto.statusDate,
+    );
   }
 
   @Delete(':id')

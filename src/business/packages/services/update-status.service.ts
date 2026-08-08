@@ -9,6 +9,7 @@ export class UpdateStatusService {
     hbls: string[],
     statusId?: string,
     locationId?: string,
+    statusDate?: string,
   ) {
     /*
     este servicio debe encargarse de actualizar el estado y la localizacion de los paquetes que se encuentren en la base de datos, a partir de los hbls que se le pasen como parametro.
@@ -114,6 +115,7 @@ export class UpdateStatusService {
                 packageId: pkg.id,
                 statusId,
                 locationId: historyLocationId,
+                createdAt: statusDate ?? new Date().toISOString(),
               },
             });
           }

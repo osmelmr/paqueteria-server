@@ -26,12 +26,12 @@ export class MunicipesController {
 
   @Post()
   create(@Body() dto: CreateMunicipeDto) {
-    return this.municipes.create(dto.name);
+    return this.municipes.create(dto.name, dto.header);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateMunicipeDto) {
-    return this.municipes.update(id, dto.name);
+    return this.municipes.update(id, dto.name, dto.header);
   }
 
   @Delete(':id')

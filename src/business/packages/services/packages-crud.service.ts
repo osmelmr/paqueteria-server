@@ -290,6 +290,14 @@ export class PackagesService {
             'Debe indicar una ubicación para registrar el nuevo estado',
           );
         }
+        if (data.statusDate) {
+          await this.assertStatusDateRange(
+            tx,
+            id,
+            new Date(data.statusDate),
+            0,
+          );
+        }
         await tx.packageStatusHistory.create({
           data: {
             packageId: id,
@@ -300,6 +308,12 @@ export class PackagesService {
         });
       } else if (data.statusDate) {
         // Sin cambio de estado: actualizar la fecha del ultimo cambio registrado
+        await this.assertStatusDateRange(
+          tx,
+          id,
+          new Date(data.statusDate),
+          1,
+        );
         const latest = await tx.packageStatusHistory.findFirst({
           where: { packageId: id },
           orderBy: { createdAt: 'desc' },
@@ -336,6 +350,10 @@ export class PackagesService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+      if (statusDate) {
+        await this.assertStatusDateRange(tx, id, new Date(statusDate), 0);
+      }
+
       const updated = await tx.package.update({
         where: { id },
         data: {
@@ -393,6 +411,37 @@ export class PackagesService {
       });
       if (!location)
         throw new BadRequestException(`Ubicación inválida: ${locationId}`);
+    }
+  }
+
+  private async assertStatusDateRange(
+    tx: {
+      packageStatusHistory: {
+        findFirst: (args: {
+          where: { packageId: string };
+          orderBy: { createdAt: 'desc' };
+          skip?: number;
+        }) => Promise<{ id: string; createdAt: Date } | null>;
+      };
+    },
+    packageId: string,
+    date: Date,
+    skip: number,
+  ) {
+    if (date.getTime() > Date.now()) {
+      throw new BadRequestException(
+        'La fecha del cambio de estado no puede ser futura',
+      );
+    }
+    const reference = await tx.packageStatusHistory.findFirst({
+      where: { packageId },
+      orderBy: { createdAt: 'desc' },
+      skip,
+    });
+    if (reference && date.getTime() < reference.createdAt.getTime()) {
+      throw new BadRequestException(
+        'La fecha del cambio de estado no puede ser anterior al último cambio registrado',
+      );
     }
   }
 

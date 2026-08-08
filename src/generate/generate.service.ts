@@ -6,7 +6,10 @@ import ExcelJS from 'exceljs';
 export class GenerateService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async generateExcel(routeId: string): Promise<Buffer> {
+  async generateExcel(
+    routeId: string,
+    deliveredBy?: string,
+  ): Promise<Buffer> {
     if (!routeId) {
       throw new NotFoundException('El ID de la ruta es requerido');
     }
@@ -59,20 +62,20 @@ export class GenerateService {
     // Fila 1: Título MIPYME
     worksheet.mergeCells('A1:E1');
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = 'MIPYME';
+    titleCell.value = 'MIPYME TRANSPORTACIONES RODRIGEZ RIZO';
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
     titleCell.font = { bold: true, size: 16 };
 
     // Filas 2-4: Información de la ruta
     const cellA2 = worksheet.getCell('A2');
-    cellA2.value = 'ENTREGADO:';
+    cellA2.value = 'ENTREGADO POR:';
     cellA2.font = { bold: true };
 
     const cellB2 = worksheet.getCell('B2');
-    cellB2.value = route.vehicle?.name || 'No especificado';
+    cellB2.value = deliveredBy || 'No especificado';
 
     const cellA3 = worksheet.getCell('A3');
-    cellA3.value = 'TRANSPORTADO:';
+    cellA3.value = 'TRANSPORTADO POR:';
     cellA3.font = { bold: true };
 
     const driversNames = route.drivers.map((d) => d.driver.name).join(', ');
@@ -80,7 +83,7 @@ export class GenerateService {
     cellB3.value = driversNames || 'No especificado';
 
     const cellA4 = worksheet.getCell('A4');
-    cellA4.value = 'RECIBIDO:';
+    cellA4.value = 'RECIBIDO POR:';
     cellA4.font = { bold: true };
 
     worksheet.getCell('B4').value = '';

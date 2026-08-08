@@ -1,15 +1,32 @@
-import { Controller, Get, Param, Res, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Req,
+  Res,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { GenerateService } from './generate.service.js';
-import type { Response } from 'express';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import type { Request, Response } from 'express';
 
 @Controller('generate')
+@UseGuards(JwtAuthGuard)
 export class GenerateController {
   constructor(private readonly generateService: GenerateService) {}
 
   @Get('excel/:id')
-  async generateExcel(@Param('id') id: string, @Res() res: Response) {
+  async generateExcel(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     try {
-      const buffer = await this.generateService.generateExcel(id);
+      const buffer = await this.generateService.generateExcel(
+        id,
+        (req.user as { fullName?: string } | undefined)?.fullName,
+      );
 
       res.setHeader(
         'Content-Type',

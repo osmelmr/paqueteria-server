@@ -23,7 +23,7 @@ export class StatisticsService {
           where: {
             status: {
               name: {
-                notIn: ['en espera'],
+                in: ['en espera'],
                 mode: 'insensitive',
               },
             },

@@ -22,7 +22,10 @@ export class StatisticsService {
         this.prisma.package.count({
           where: {
             status: {
-              name: { notIn: ['entregado', 'perdido'], mode: 'insensitive' },
+              name: {
+                notIn: ['en espera'],
+                mode: 'insensitive',
+              },
             },
           },
         }),

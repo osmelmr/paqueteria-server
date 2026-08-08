@@ -7,6 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 
 const routeInclude = {
   vehicle: { include: { drivers: { include: { driver: true } } } },
+  drivers: { include: { driver: true } },
   packages: {
     include: {
       hbls: true,
@@ -44,6 +45,7 @@ export class RoutesService {
     departureDate?: string;
     vehicleId: string;
     hbls: string[];
+    driverIds?: string[];
   }) {
     const hblRecords = await this.prisma.packageHbl.findMany({
       where: { hblCode: { in: data.hbls } },
@@ -52,6 +54,7 @@ export class RoutesService {
 
     const vehicle = await this.prisma.vehicle.findUnique({
       where: { id: data.vehicleId },
+      include: { drivers: { select: { driverId: true } } },
     });
     if (!vehicle) throw new BadRequestException('Vehículo no encontrado');
 
@@ -67,6 +70,18 @@ export class RoutesService {
     if (packageIds.length > 0)
       createData.packages = { connect: packageIds.map((id) => ({ id })) };
 
+    let driverIds = data.driverIds;
+    if (driverIds === undefined) {
+      driverIds = vehicle.drivers.map((dv) => dv.driverId);
+    }
+    driverIds = [...new Set(driverIds)];
+    await this.validateDrivers(driverIds);
+    if (driverIds.length > 0) {
+      createData.drivers = {
+        create: driverIds.map((driverId) => ({ driverId })),
+      };
+    }
+
     return this.prisma.route.create({
       data: createData,
       include: routeInclude,
@@ -81,9 +96,10 @@ export class RoutesService {
       departureDate?: string;
       vehicleId?: string;
       hbls?: string[];
+      driverIds?: string[];
     },
   ) {
-    await this.findById(id);
+    const existing = await this.findById(id);
 
     const updateData: any = {};
     if (data.name !== undefined)
@@ -105,11 +121,28 @@ export class RoutesService {
       };
     }
 
-    if (data.vehicleId !== undefined) {
+    if (
+      data.vehicleId !== undefined &&
+      data.vehicleId !== existing.vehicleId
+    ) {
       const vehicle = await this.prisma.vehicle.findUnique({
         where: { id: data.vehicleId },
+        include: { drivers: { select: { driverId: true } } },
       });
       if (!vehicle) throw new BadRequestException('Vehículo no encontrado');
+      updateData.drivers = {
+        deleteMany: {},
+        create: vehicle.drivers.map((dv) => ({ driverId: dv.driverId })),
+      };
+    }
+
+    if (data.driverIds !== undefined) {
+      const driverIds = [...new Set(data.driverIds)];
+      await this.validateDrivers(driverIds);
+      updateData.drivers = {
+        deleteMany: {},
+        create: driverIds.map((driverId) => ({ driverId })),
+      };
     }
 
     return this.prisma.route.update({
@@ -117,6 +150,17 @@ export class RoutesService {
       data: updateData,
       include: routeInclude,
     });
+  }
+
+  private async validateDrivers(driverIds: string[]) {
+    if (driverIds.length === 0) return;
+    const found = await this.prisma.driver.findMany({
+      where: { id: { in: driverIds } },
+      select: { id: true },
+    });
+    if (found.length !== driverIds.length) {
+      throw new BadRequestException('Alguno de los conductores no existe');
+    }
   }
 
   async delete(id: string) {

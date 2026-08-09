@@ -303,17 +303,14 @@ export class PackagesService {
             packageId: id,
             statusId: nextStatusId,
             locationId: historyLocationId,
-            ...(data.statusDate ? { createdAt: new Date(data.statusDate) } : {}),
+            ...(data.statusDate
+              ? { createdAt: new Date(data.statusDate) }
+              : {}),
           },
         });
       } else if (data.statusDate) {
         // Sin cambio de estado: actualizar la fecha del ultimo cambio registrado
-        await this.assertStatusDateRange(
-          tx,
-          id,
-          new Date(data.statusDate),
-          1,
-        );
+        await this.assertStatusDateRange(tx, id, new Date(data.statusDate), 1);
         const latest = await tx.packageStatusHistory.findFirst({
           where: { packageId: id },
           orderBy: { createdAt: 'desc' },

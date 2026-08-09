@@ -16,6 +16,32 @@ import type { Request, Response } from 'express';
 export class GenerateController {
   constructor(private readonly generateService: GenerateService) {}
 
+  @Get('pdf/:id')
+  async generatePackagePdf(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const { buffer, filename } =
+        await this.generateService.generatePackagePdf(id);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`,
+      );
+      res.setHeader('Content-Length', buffer.length);
+
+      res.status(HttpStatus.OK).send(buffer);
+    } catch (error) {
+      if (error.status === 404) {
+        res.status(HttpStatus.NOT_FOUND).json({ message: error.message });
+      } else {
+        console.error('Error al generar PDF:', error);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          message: 'Error al generar el PDF',
+        });
+      }
+    }
+  }
+
   @Get('excel/:id')
   async generateExcel(
     @Param('id') id: string,

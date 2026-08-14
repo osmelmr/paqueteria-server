@@ -50,6 +50,9 @@ export class AiClientService {
     return `
       Eres un asistente experto en extracción de datos de envíos desde texto de archivos Excel.
       El siguiente texto proviene de un Excel con varias filas, cada una con datos de un envío.
+      Cada fila del Excel está delimitada por las etiquetas <INICIO_FILA> y <FIN_FILA>:
+      todo lo que se encuentre entre <INICIO_FILA> y <FIN_FILA> corresponde EXACTAMENTE a UNA sola fila de un envío.
+      Debes extraer UN objeto de paquete por cada bloque <INICIO_FILA>...</FIN_FILA>, sin mezclar ni duplicar datos entre filas.
       Para cada fila extrae estos campos:
       - "address": dirección (string)
       - "content": contenido (string)
@@ -68,7 +71,11 @@ export class AiClientService {
       ---
 
       Responde únicamente con un JSON con la propiedad "packages" que contenga un array de objetos.
-      Ejemplo:
+      Ejemplo del formato de entrada (una fila):
+      <INICIO_FILA>
+      Juan Pérez	12345678901	555555555	Cotorro	La Habana	Calle 123	ABC123	33.5
+      <FIN_FILA>
+      Ejemplo de salida:
       {
         "packages": [
           {

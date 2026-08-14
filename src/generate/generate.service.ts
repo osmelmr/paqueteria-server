@@ -103,7 +103,7 @@ export class GenerateService {
     // ============================================================
     const docDefinition = {
       pageSize: {
-        width: 7.5 * 28.35, // 7.5 cm de ancho (más estrecho)
+        width: 7.5 * 28.35, // 7.5 cm de ancho
         height: 10.5 * 28.35, // 10.5 cm de alto
       },
       pageMargins: [3, 3, 3, 3],
@@ -154,18 +154,18 @@ export class GenerateService {
                     vLineWidth: () => 0,
                     paddingLeft: () => 0,
                     paddingRight: () => 0,
-                    paddingTop: () => 0.5,
-                    paddingBottom: () => 0.5,
+                    paddingTop: () => 1.5, // ⬆️ Aumentado
+                    paddingBottom: () => 1.5, // ⬆️ Aumentado
                   },
                 },
                 {
-                  width: 55,
+                  width: 65,
                   alignment: 'center',
                   stack: [
                     {
                       image: qrBase64,
-                      width: 45,
-                      height: 45,
+                      width: 55, // ⬆️ Más grande
+                      height: 55, // ⬆️ Más grande
                       alignment: 'center',
                     },
                   ],
@@ -246,11 +246,10 @@ export class GenerateService {
                 vLineWidth: () => 0,
                 paddingLeft: () => 0,
                 paddingRight: () => 0,
-                paddingTop: () => 0.5,
-                paddingBottom: () => 0.5,
+                paddingTop: () => 1.5, // ⬆️ Aumentado
+                paddingBottom: () => 1.5, // ⬆️ Aumentado
               },
-              // ⬆️ GAP VERTICAL AUMENTADO (10 pt de separación)
-              margin: [0, 10, 0, 0],
+              margin: [0, 8, 0, 0], // Gap vertical entre bloques
             },
           ],
           unbreakable: true,

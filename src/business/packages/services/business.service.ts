@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service.js';
+import { normalizeText } from '../../../common/utils/normalize-text.js';
 import { BusinessEntity } from '../dto/business-entity.dto.js';
 import { BulkAiEntities } from '../dto/business-ia-entity.dto.js';
 
@@ -23,6 +24,7 @@ export class BusinessService {
 
     for (const entity of businesEntities) {
       try {
+        this.assertPackageSaveable(entity);
         const packageData = await this.resolverEntityUtility(entity);
         if (!packageData.statusId || !packageData.locationId) {
           throw new Error(
@@ -56,6 +58,41 @@ export class BusinessService {
 
     return { success, failed };
   }
+
+  private isBlank(value: unknown): boolean {
+    return (
+      value === null ||
+      value === undefined ||
+      value === '' ||
+      (typeof value === 'string' && value.trim() === '')
+    );
+  }
+
+  private hasMeaningfulData(entity: BusinessEntity): boolean {
+    return !(
+      this.isBlank(entity.address) &&
+      this.isBlank(entity.content) &&
+      this.isBlank(entity.fullName) &&
+      this.isBlank(entity.idCard) &&
+      this.isBlank(entity.phone) &&
+      this.isBlank(entity.province) &&
+      this.isBlank(entity.municipe) &&
+      this.isBlank(entity.arrivalDate) &&
+      (entity.weight == null || Number(entity.weight) <= 0)
+    );
+  }
+
+  private assertPackageSaveable(entity: BusinessEntity): void {
+    if (!entity.hblCodes || entity.hblCodes.length === 0) {
+      throw new Error('El paquete no tiene HBL y no puede guardarse');
+    }
+    if (!this.hasMeaningfulData(entity)) {
+      throw new Error(
+        'El paquete viene con todos sus datos en blanco y no puede guardarse',
+      );
+    }
+  }
+
   async resolverEntityUtility(entity: BusinessEntity) {
     // Aquí puedes implementar la lógica para procesar una sola entidad de negocio
     /* logica de implementacion:
@@ -119,16 +156,12 @@ export class BusinessService {
       if (province) packageData.provinceId = entity.provinceId;
     } else if (entity.province) {
       const existing = await this.prisma.province.findFirst({
-        where: { name: { contains: entity.province, mode: 'insensitive' } },
+        where: { name: { contains: normalizeText(entity.province), mode: 'insensitive' } },
       });
       if (existing) {
         packageData.provinceId = existing.id;
       } else {
-        const normalized = entity.province
-          .toUpperCase()
-          .replace(/[^\w\s]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
+        const normalized = normalizeText(entity.province);
         const created = await this.prisma.province.create({
           data: { name: normalized },
         });
@@ -143,16 +176,12 @@ export class BusinessService {
       if (municipe) packageData.municipeId = entity.municipeId;
     } else if (entity.municipe) {
       const existing = await this.prisma.municipe.findFirst({
-        where: { name: { contains: entity.municipe, mode: 'insensitive' } },
+        where: { name: { contains: normalizeText(entity.municipe), mode: 'insensitive' } },
       });
       if (existing) {
         packageData.municipeId = existing.id;
       } else {
-        const normalized = entity.municipe
-          .toUpperCase()
-          .replace(/[^\w\s]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
+        const normalized = normalizeText(entity.municipe);
         const created = await this.prisma.municipe.create({
           data: { name: normalized },
         });
@@ -260,13 +289,9 @@ y como ambos servicios pueden procesar de lugares diferentes es mejor que ambos 
       });
       if (location) locationId = entities.locationId;
     } else if (entities.location) {
-      const normalized = entities.location
-        .toUpperCase()
-        .replace(/[^\w\s]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+      const normalized = normalizeText(entities.location);
       const existing = await this.prisma.location.findFirst({
-        where: { name: { contains: entities.location, mode: 'insensitive' } },
+        where: { name: { contains: normalized, mode: 'insensitive' } },
       });
       if (existing) {
         locationId = existing.id;

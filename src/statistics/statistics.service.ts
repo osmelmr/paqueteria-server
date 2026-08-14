@@ -7,18 +7,20 @@ export class StatisticsService {
 
   async main() {
     // buscar los ids de los estados relevantes
-    const [almacenadoStatus, entregadoStatus, esperaStatus] = await Promise.all([
-      this.prisma.status.findFirst({
-        // buscar por contains 'almace' para cubrir variantes como 'almacen' o 'almacenado'
-        where: { name: { contains: 'almace', mode: 'insensitive' } },
-      }),
-      this.prisma.status.findFirst({
-        where: { name: { equals: 'entregado', mode: 'insensitive' } },
-      }),
-      this.prisma.status.findFirst({
-        where: { name: { contains: 'espera', mode: 'insensitive' } },
-      }),
-    ]);
+    const [almacenadoStatus, entregadoStatus, esperaStatus] = await Promise.all(
+      [
+        this.prisma.status.findFirst({
+          // buscar por contains 'almace' para cubrir variantes como 'almacen' o 'almacenado'
+          where: { name: { contains: 'almace', mode: 'insensitive' } },
+        }),
+        this.prisma.status.findFirst({
+          where: { name: { equals: 'entregado', mode: 'insensitive' } },
+        }),
+        this.prisma.status.findFirst({
+          where: { name: { contains: 'espera', mode: 'insensitive' } },
+        }),
+      ],
+    );
 
     const [almacenados, entregados, guiasActivas, enEspera, ultimasRutas] =
       await Promise.all([
@@ -30,7 +32,9 @@ export class StatisticsService {
         this.prisma.package.count({
           where: entregadoStatus
             ? { statusId: entregadoStatus.id }
-            : { status: { name: { equals: 'entregado', mode: 'insensitive' } } },
+            : {
+                status: { name: { equals: 'entregado', mode: 'insensitive' } },
+              },
         }),
         this.prisma.guide.count(),
         this.prisma.package.count({

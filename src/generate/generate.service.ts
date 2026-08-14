@@ -103,10 +103,10 @@ export class GenerateService {
     // ============================================================
     const docDefinition = {
       pageSize: {
-        width: 7.5 * 28.35, // 7.5 cm de ancho
-        height: 10.5 * 28.35, // 10.5 cm de alto
+        width: 7.5 * 28.35,
+        height: 10.5 * 28.35,
       },
-      pageMargins: [3, 3, 3, 3],
+      pageMargins: [8, 12, 3, 3],
       defaultStyle: {
         fontSize: 8.5,
         lineHeight: 1.2,
@@ -154,22 +154,22 @@ export class GenerateService {
                     vLineWidth: () => 0,
                     paddingLeft: () => 0,
                     paddingRight: () => 0,
-                    paddingTop: () => 1.5, // ⬆️ Aumentado
-                    paddingBottom: () => 1.5, // ⬆️ Aumentado
+                    paddingTop: () => 0.5,
+                    paddingBottom: () => 0.5,
                   },
                 },
                 {
-                  width: 65,
+                  width: 65, // ⬆️ Aumentado de 55 a 65
                   alignment: 'center',
                   stack: [
                     {
                       image: qrBase64,
-                      width: 55, // ⬆️ Más grande
-                      height: 55, // ⬆️ Más grande
+                      width: 55, // ⬆️ Aumentado de 45 a 55
+                      height: 55, // ⬆️ Aumentado de 45 a 55
                       alignment: 'center',
                     },
                   ],
-                  margin: [0, 2, 0, 0],
+                  margin: [0, 0, 0, 0],
                 },
               ],
             },
@@ -246,10 +246,10 @@ export class GenerateService {
                 vLineWidth: () => 0,
                 paddingLeft: () => 0,
                 paddingRight: () => 0,
-                paddingTop: () => 1.5, // ⬆️ Aumentado
-                paddingBottom: () => 1.5, // ⬆️ Aumentado
+                paddingTop: () => 0.5,
+                paddingBottom: () => 0.5,
               },
-              margin: [0, 8, 0, 0], // Gap vertical entre bloques
+              margin: [0, 10, 0, 0],
             },
           ],
           unbreakable: true,

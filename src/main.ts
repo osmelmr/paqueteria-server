@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import helmetImport from 'helmet';
 import { ValidationPipe, RequestMethod } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module.js';
 
 // Workaround: los tipos de helmet no son compatibles con moduleResolution NodeNext/Node16.
@@ -17,7 +18,8 @@ const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? '')
   .filter(Boolean);
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useBodyParser('json', { limit: '10mb' });
   app.setGlobalPrefix('api/v1', {
     exclude: [{ path: '/', method: RequestMethod.GET }],
   });

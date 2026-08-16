@@ -8,6 +8,48 @@ import { BulkAiEntities } from '../dto/business-ia-entity.dto.js';
 export class BusinessService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async resolveOrCreateNamedEntity(
+    model: {
+      findFirst(args: {
+        where: { name: { contains: string; mode: 'insensitive' } };
+      }): Promise<{ id: string } | null>;
+      create(args: { data: { name: string } }): Promise<{ id: string }>;
+    },
+    name: string,
+  ): Promise<string> {
+    const normalized = normalizeText(name);
+    const collapsed = normalized.replace(/\s/g, '');
+
+    const existing =
+      (await model.findFirst({
+        where: { name: { contains: normalized, mode: 'insensitive' } },
+      })) ??
+      (await model.findFirst({
+        where: { name: { contains: collapsed, mode: 'insensitive' } },
+      })) ??
+      (await model.findFirst({
+        where: { name: { contains: name, mode: 'insensitive' } },
+      }));
+    if (existing) return existing.id;
+
+    try {
+      const created = await model.create({ data: { name: normalized } });
+      return created.id;
+    } catch (err) {
+      if ((err as { code?: string }).code === 'P2002') {
+        const duplicate =
+          (await model.findFirst({
+            where: { name: { contains: normalized, mode: 'insensitive' } },
+          })) ??
+          (await model.findFirst({
+            where: { name: { contains: collapsed, mode: 'insensitive' } },
+          }));
+        if (duplicate) return duplicate.id;
+      }
+      throw err;
+    }
+  }
+
   async processBulkAiEntities(entities: BulkAiEntities) {
     const businesEntities = await this.resolverBulkAiEntitiesUtility(entities);
     /*a partir de esto ahora el debe crear una variable seccess y una variable failed
@@ -155,18 +197,10 @@ export class BusinessService {
       });
       if (province) packageData.provinceId = entity.provinceId;
     } else if (entity.province) {
-      const existing = await this.prisma.province.findFirst({
-        where: { name: { contains: normalizeText(entity.province), mode: 'insensitive' } },
-      });
-      if (existing) {
-        packageData.provinceId = existing.id;
-      } else {
-        const normalized = normalizeText(entity.province);
-        const created = await this.prisma.province.create({
-          data: { name: normalized },
-        });
-        packageData.provinceId = created.id;
-      }
+      packageData.provinceId = await this.resolveOrCreateNamedEntity(
+        this.prisma.province,
+        entity.province,
+      );
     }
 
     if (entity.municipeId) {
@@ -175,18 +209,10 @@ export class BusinessService {
       });
       if (municipe) packageData.municipeId = entity.municipeId;
     } else if (entity.municipe) {
-      const existing = await this.prisma.municipe.findFirst({
-        where: { name: { contains: normalizeText(entity.municipe), mode: 'insensitive' } },
-      });
-      if (existing) {
-        packageData.municipeId = existing.id;
-      } else {
-        const normalized = normalizeText(entity.municipe);
-        const created = await this.prisma.municipe.create({
-          data: { name: normalized },
-        });
-        packageData.municipeId = created.id;
-      }
+      packageData.municipeId = await this.resolveOrCreateNamedEntity(
+        this.prisma.municipe,
+        entity.municipe,
+      );
     }
 
     if (entity.idCard) {
@@ -289,18 +315,10 @@ y como ambos servicios pueden procesar de lugares diferentes es mejor que ambos 
       });
       if (location) locationId = entities.locationId;
     } else if (entities.location) {
-      const normalized = normalizeText(entities.location);
-      const existing = await this.prisma.location.findFirst({
-        where: { name: { contains: normalized, mode: 'insensitive' } },
-      });
-      if (existing) {
-        locationId = existing.id;
-      } else {
-        const created = await this.prisma.location.create({
-          data: { name: normalized },
-        });
-        locationId = created.id;
-      }
+      locationId = await this.resolveOrCreateNamedEntity(
+        this.prisma.location,
+        entities.location,
+      );
     }
 
     if (entities.guideId) {

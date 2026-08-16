@@ -74,10 +74,16 @@ export class UpdateStatusService {
     // Recorrer la lista de hbls y buscar cada paquete
     for (const hbl of hbls) {
       try {
-        const packageHbl = await this.prisma.packageHbl.findUnique({
-          where: { hblCode: hbl },
-          include: { package: true },
-        });
+        const normalizedHbl = this.normalizeHbl(hbl);
+        const packageHbl =
+          (await this.prisma.packageHbl.findUnique({
+            where: { hblCode: normalizedHbl },
+            include: { package: true },
+          })) ??
+          (await this.prisma.packageHbl.findFirst({
+            where: { hblCode: { contains: normalizedHbl } },
+            include: { package: true },
+          }));
 
         if (!packageHbl) {
           notFound.push(hbl);
@@ -133,5 +139,9 @@ export class UpdateStatusService {
       success: updated,
       failed: notFound,
     };
+  }
+
+  private normalizeHbl(hbl: string): string {
+    return hbl.trim().replace(/^CM0?/i, '').replace(/AI$/i, '');
   }
 }

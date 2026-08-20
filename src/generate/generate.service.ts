@@ -411,6 +411,7 @@ export class GenerateService {
 
     for (const pkg of sortedPackages) {
       const row = worksheet.getRow(currentRow);
+      row.height = 30;
 
       const weight = pkg.weight ? Number(pkg.weight) : 0;
       totalWeight += weight;
@@ -443,6 +444,41 @@ export class GenerateService {
       row.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
       row.getCell(6).alignment = { horizontal: 'left', vertical: 'middle' };
 
+      currentRow++;
+    }
+
+    // HBLs sin coincidencia almacenados en la ruta (se insertan al final como una fila mas)
+    let notFoundHbls: string[] = [];
+    if (route.notFound) {
+      try {
+        const parsed: unknown = JSON.parse(route.notFound);
+        if (Array.isArray(parsed)) notFoundHbls = parsed.map(String);
+      } catch {
+        notFoundHbls = route.notFound
+          .split(/\r?\n/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+    }
+
+    for (const hbl of notFoundHbls) {
+      const row = worksheet.getRow(currentRow);
+      for (let col = 1; col <= 9; col++) {
+        const cell = row.getCell(col);
+        if (col !== 2) cell.value = '';
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        cell.alignment =
+          col === 2
+            ? { horizontal: 'center', vertical: 'middle' }
+            : { horizontal: 'left', vertical: 'middle' };
+        cell.font = { color: { argb: 'FF008000' }, size: 10 };
+      }
+      row.getCell(2).value = hbl;
       currentRow++;
     }
 

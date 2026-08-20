@@ -46,6 +46,7 @@ export class RoutesService {
     vehicleId: string;
     hbls: string[];
     driverIds?: string[];
+    notFound?: string[];
   }) {
     const uniqueHbls = Array.from(
       new Set(data.hbls.map((h) => h.trim()).filter(Boolean)),
@@ -63,7 +64,12 @@ export class RoutesService {
     if (!vehicle) throw new BadRequestException('Vehículo no encontrado');
 
     const matchedHbls = new Set(hblRecords.map((h) => h.hblCode));
-    const notFound = uniqueHbls.filter((h) => !matchedHbls.has(h));
+    const notFound =
+      data.notFound !== undefined
+        ? Array.from(
+            new Set(data.notFound.map((h) => h.trim()).filter(Boolean)),
+          )
+        : uniqueHbls.filter((h) => !matchedHbls.has(h));
 
     const packageIds = [...new Set(hblRecords.map((h) => h.packageId))];
 
@@ -76,6 +82,7 @@ export class RoutesService {
       createData.departureDate = new Date(data.departureDate);
     if (packageIds.length > 0)
       createData.packages = { connect: packageIds.map((id) => ({ id })) };
+    createData.notFound = notFound.length > 0 ? JSON.stringify(notFound) : null;
 
     let driverIds = data.driverIds;
     if (driverIds === undefined) {
@@ -111,6 +118,7 @@ export class RoutesService {
       vehicleId?: string;
       hbls?: string[];
       driverIds?: string[];
+      notFound?: string[];
     },
   ) {
     const existing = await this.findById(id);
@@ -124,15 +132,33 @@ export class RoutesService {
       updateData.departureDate = new Date(data.departureDate);
     if (data.vehicleId !== undefined) updateData.vehicleId = data.vehicleId;
 
-    if (data.hbls !== undefined) {
-      const hblRecords = await this.prisma.packageHbl.findMany({
-        where: { hblCode: { in: data.hbls } },
-        select: { packageId: true },
-      });
-      const packageIds = [...new Set(hblRecords.map((h) => h.packageId))];
-      updateData.packages = {
-        set: packageIds.map((pid) => ({ id: pid })),
-      };
+if (data.hbls !== undefined || data.notFound !== undefined) {
+      if (data.hbls !== undefined) {
+        const uniqueHbls = Array.from(
+          new Set(data.hbls.map((h) => h.trim()).filter(Boolean)),
+        );
+        const hblRecords = await this.prisma.packageHbl.findMany({
+          where: { hblCode: { in: uniqueHbls } },
+          select: { hblCode: true, packageId: true },
+        });
+        const matchedHbls = new Set(hblRecords.map((h) => h.hblCode));
+        const packageIds = [...new Set(hblRecords.map((h) => h.packageId))];
+        updateData.packages = {
+          set: packageIds.map((pid) => ({ id: pid })),
+        };
+        if (data.notFound === undefined) {
+          const notFound = uniqueHbls.filter((h) => !matchedHbls.has(h));
+          updateData.notFound =
+            notFound.length > 0 ? JSON.stringify(notFound) : null;
+        }
+      }
+      if (data.notFound !== undefined) {
+        const notFound = Array.from(
+          new Set(data.notFound.map((h) => h.trim()).filter(Boolean)),
+        );
+        updateData.notFound =
+          notFound.length > 0 ? JSON.stringify(notFound) : null;
+      }
     }
 
     if (

@@ -22,4 +22,9 @@ export class CreateRouteDto {
   @IsArray()
   @IsString({ each: true })
   driverIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  notFound?: string[];
 }

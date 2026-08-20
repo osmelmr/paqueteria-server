@@ -26,4 +26,9 @@ export class UpdateRouteDto {
   @IsArray()
   @IsString({ each: true })
   driverIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  notFound?: string[];
 }

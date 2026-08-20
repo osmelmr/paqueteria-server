@@ -47,9 +47,13 @@ export class RoutesService {
     hbls: string[];
     driverIds?: string[];
   }) {
+    const uniqueHbls = Array.from(
+      new Set(data.hbls.map((h) => h.trim()).filter(Boolean)),
+    );
+
     const hblRecords = await this.prisma.packageHbl.findMany({
-      where: { hblCode: { in: data.hbls } },
-      select: { packageId: true },
+      where: { hblCode: { in: uniqueHbls } },
+      select: { hblCode: true, packageId: true },
     });
 
     const vehicle = await this.prisma.vehicle.findUnique({
@@ -57,6 +61,9 @@ export class RoutesService {
       include: { drivers: { select: { driverId: true } } },
     });
     if (!vehicle) throw new BadRequestException('Vehículo no encontrado');
+
+    const matchedHbls = new Set(hblRecords.map((h) => h.hblCode));
+    const notFound = uniqueHbls.filter((h) => !matchedHbls.has(h));
 
     const packageIds = [...new Set(hblRecords.map((h) => h.packageId))];
 
@@ -82,10 +89,17 @@ export class RoutesService {
       };
     }
 
-    return this.prisma.route.create({
+    const route = await this.prisma.route.create({
       data: createData,
       include: routeInclude,
     });
+
+    return {
+      route,
+      notFound,
+      totalHbls: uniqueHbls.length,
+      foundPackages: packageIds.length,
+    };
   }
 
   async update(

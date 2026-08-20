@@ -166,6 +166,58 @@ export class PackagesService {
     return packageHbl as any;
   }
 
+  async checkHbls(
+    hbls: string[],
+  ): Promise<{ found: any[]; notFound: string[] }> {
+    const unique: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of hbls) {
+      const normalized = this.normalizeHbl(raw);
+      if (!normalized || seen.has(normalized)) continue;
+      seen.add(normalized);
+      unique.push(normalized);
+    }
+
+    const found: any[] = [];
+    const foundPackageIds = new Set<string>();
+    const matched = new Set<string>();
+
+    const exact = await this.prisma.packageHbl.findMany({
+      where: { hblCode: { in: unique } },
+      include: { package: { include: normalizePackageInclude(true) } },
+    });
+    for (const match of exact) {
+      matched.add(match.hblCode);
+      if (!foundPackageIds.has(match.package.id)) {
+        foundPackageIds.add(match.package.id);
+        found.push(match.package);
+      }
+    }
+
+    for (const hbl of unique) {
+      if (matched.has(hbl)) continue;
+      const fallback = await this.prisma.packageHbl.findFirst({
+        where: { hblCode: { contains: hbl } },
+        include: { package: { include: normalizePackageInclude(true) } },
+      });
+      if (fallback) {
+        matched.add(hbl);
+        if (!foundPackageIds.has(fallback.package.id)) {
+          foundPackageIds.add(fallback.package.id);
+          found.push(fallback.package);
+        }
+      }
+    }
+
+    const notFound = unique.filter((hbl) => !matched.has(hbl));
+
+    return { found, notFound };
+  }
+
+  private normalizeHbl(hbl: string): string {
+    return hbl.trim().replace(/^CM0?/i, '').replace(/AI$/i, '');
+  }
+
   async create(data: {
     guideId?: string;
     recipientId?: string;

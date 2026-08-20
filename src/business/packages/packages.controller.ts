@@ -96,6 +96,15 @@ export class PackagesController {
     return this.packageHistory.history(id);
   }
 
+  @Post('check-hbls')
+  checkHbls(@Body() body: { hbls?: string[] }) {
+    const hbls = Array.isArray(body?.hbls) ? body.hbls : [];
+    if (hbls.length === 0) {
+      throw new BadRequestException('Debe enviar al menos un HBL');
+    }
+    return this.packages.checkHbls(hbls);
+  }
+
   @Post()
   create(@Body() dto: CreatePackageDto) {
     return this.packages.create(dto);

@@ -13,8 +13,10 @@ import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateLocationDto } from './dto/create-location.dto.js';
 import { UpdateLocationDto } from './dto/update-location.dto.js';
 import { LocationsService } from './locations.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('locations')
+@Roles('ADMIN', 'OWNER')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class LocationsController {
   constructor(private locations: LocationsService) {}

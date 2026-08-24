@@ -17,6 +17,7 @@ import { UpdatePackageDto } from './dto/update-package.dto.js';
 import { UpdatePackageStatusDto } from './dto/update-package-status.dto.js';
 import { PackagesService } from './services/packages-crud.service.js';
 import { PackageHistoryService } from './services/package-history.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('packages')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -26,6 +27,7 @@ export class PackagesController {
     private packageHistory: PackageHistoryService,
   ) {}
 
+  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Get()
   findAll(
     @Query('status') status?: string,
@@ -81,21 +83,25 @@ export class PackagesController {
     });
   }
 
+  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Get('by-hbl/:hbl')
   findByHbl(@Param('hbl') hbl: string) {
     return this.packages.findByHbl(hbl);
   }
 
+  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.packages.findById(id);
   }
 
+  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Get(':id/history')
   history(@Param('id') id: string) {
     return this.packageHistory.history(id);
   }
 
+  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Post('check-hbls')
   checkHbls(@Body() body: { hbls?: string[] }) {
     const hbls = Array.isArray(body?.hbls) ? body.hbls : [];
@@ -105,16 +111,19 @@ export class PackagesController {
     return this.packages.checkHbls(hbls);
   }
 
+  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Post()
   create(@Body() dto: CreatePackageDto) {
     return this.packages.create(dto);
   }
 
+  @Roles('ADMIN', 'OWNER')
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdatePackageDto) {
     return this.packages.update(id, dto);
   }
 
+  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body() dto: UpdatePackageStatusDto) {
     return this.packages.updateStatus(
@@ -125,6 +134,7 @@ export class PackagesController {
     );
   }
 
+  @Roles('ADMIN', 'OWNER')
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.packages.delete(id);

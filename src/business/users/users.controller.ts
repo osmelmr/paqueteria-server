@@ -17,42 +17,37 @@ import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UsersService } from './users.service.js';
 
 @Controller('users')
+@Roles('ADMIN', 'OWNER')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private users: UsersService) {}
 
   @Post()
-  @Roles('ADMIN')
   create(@Body() dto: CreateUserDto) {
     return this.users.create(dto);
   }
 
   @Get()
-  @Roles('ADMIN')
   findAll() {
     return this.users.findAll();
   }
 
   @Get(':id')
-  @Roles('ADMIN')
   findOne(@Param('id') id: string) {
     return this.users.findOne(id);
   }
 
   @Patch(':id')
-  @Roles('ADMIN')
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.users.update(id, dto);
   }
 
   @Patch(':id/change-password')
-  @Roles('ADMIN')
   changePassword(@Param('id') id: string, @Body() dto: ChangePasswordDto) {
     return this.users.changePassword(id, dto.newPassword);
   }
 
   @Delete(':id')
-  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.users.remove(id);
   }

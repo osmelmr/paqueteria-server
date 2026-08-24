@@ -13,6 +13,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateUserDto) {
+    console.log(dto);
     const existing = await this.prisma.user.findFirst({
       where: { OR: [{ email: dto.email }, { username: dto.username }] },
     });
@@ -27,21 +28,29 @@ export class UsersService {
         email: true,
         username: true,
         fullName: true,
+        agencyId: true,
         role: true,
         isActive: true,
         createdAt: true,
       },
     });
+    console.log(user);
     return user;
   }
 
   async findAll() {
-    return this.prisma.user.findMany({
+    return await this.prisma.user.findMany({
+      where: {
+        role: {
+          notIn: ['OWNER', 'ADMIN'],
+        },
+      },
       select: {
         id: true,
         email: true,
         username: true,
         fullName: true,
+        agencyId: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -59,6 +68,7 @@ export class UsersService {
         email: true,
         username: true,
         fullName: true,
+        agencyId: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -66,6 +76,9 @@ export class UsersService {
       },
     });
     if (!user) throw new NotFoundException('User not found');
+    if (user.role === 'OWNER' || user.role === 'ADMIN') {
+      return null;
+    }
     return user;
   }
 
@@ -79,6 +92,7 @@ export class UsersService {
         email: true,
         username: true,
         fullName: true,
+        agencyId: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -98,6 +112,7 @@ export class UsersService {
         email: true,
         username: true,
         fullName: true,
+        agencyId: true,
         role: true,
         isActive: true,
         createdAt: true,

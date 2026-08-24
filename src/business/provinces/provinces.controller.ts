@@ -13,8 +13,10 @@ import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateProvinceDto } from './dto/create-province.dto.js';
 import { UpdateProvinceDto } from './dto/update-province.dto.js';
 import { ProvincesService } from './provinces.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('provinces')
+@Roles('ADMIN', 'OWNER')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProvincesController {
   constructor(private provinces: ProvincesService) {}

@@ -13,12 +13,15 @@ import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateStatusDto } from './dto/create-status.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
 import { StatusesService } from './statuses.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('statuses')
+@Roles('ADMIN', 'OWNER')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class StatusesController {
   constructor(private statuses: StatusesService) {}
 
+  @Roles('STOREKEEPER', 'WORKER')
   @Get()
   findAll() {
     return this.statuses.findAll();

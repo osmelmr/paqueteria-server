@@ -6,6 +6,7 @@ import {
   IsIn,
   IsBoolean,
 } from 'class-validator';
+import type { UserRole } from '../../../../generated/prisma/enums.js';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -19,11 +20,14 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
+  agencyId?: string;
+
+  @IsOptional()
+  @IsString()
   fullName?: string;
 
   @IsOptional()
-  @IsIn(['ADMIN', 'STOREKEEPER'])
-  role?: 'ADMIN' | 'STOREKEEPER';
+  role?: UserRole;
 
   @IsOptional()
   @IsBoolean()

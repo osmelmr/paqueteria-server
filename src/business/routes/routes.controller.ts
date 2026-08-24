@@ -19,8 +19,10 @@ import { UpdateRouteDto } from './dto/update-route.dto.js';
 import { VehiclesService } from './vehicles.service.js';
 import { DriversService } from './drivers.service.js';
 import { RoutesService } from './routes.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller()
+@Roles('ADMIN', 'OWNER')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RoutesController {
   constructor(

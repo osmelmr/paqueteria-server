@@ -6,6 +6,8 @@ import {
   IsIn,
 } from 'class-validator';
 
+import type { UserRole } from '../../../../generated/prisma/enums.js';
+
 export class CreateUserDto {
   @IsOptional()
   @IsEmail()
@@ -21,9 +23,12 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
+  agencyId?: string;
+
+  @IsOptional()
+  @IsString()
   fullName?: string;
 
   @IsOptional()
-  @IsIn(['ADMIN', 'STOREKEEPER'])
-  role?: 'ADMIN' | 'STOREKEEPER';
+  role?: UserRole;
 }

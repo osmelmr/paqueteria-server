@@ -12,6 +12,7 @@ import { BusinessService } from './services/business.service.js';
 import { BulkAiEntities } from './dto/business-ia-entity.dto.js';
 import { UpdateStatusService } from './services/update-status.service.js';
 import { PackageAlertService } from './services/package-alert.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('business')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,12 +22,13 @@ export class BusinessController {
     private readonly updateStatusService: UpdateStatusService,
     private readonly packageAlertService: PackageAlertService,
   ) {}
-
+  @Roles('ADMIN', 'OWNER')
   @Post('process-bulk-ai')
   async processBulkAi(@Body() entities: BulkAiEntities) {
     return this.businessService.processBulkAiEntities(entities);
   }
 
+  @Roles('ADMIN', 'OWNER')
   @Post('update-status-bulk')
   async updateStatusBulk(
     @Body()
@@ -45,6 +47,7 @@ export class BusinessController {
     );
   }
 
+  @Roles('ADMIN', 'OWNER')
   @Patch('packages/:id/resolve-alert')
   async resolveAlert(
     @Param('id') id: string,

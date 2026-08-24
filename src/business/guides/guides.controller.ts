@@ -15,8 +15,10 @@ import { CreateGuideDto } from './dto/create-guide.dto.js';
 import { UpdateGuideDto } from './dto/update-guide.dto.js';
 import { UploadGuideDto } from './dto/upload-guide.dto.js';
 import { GuidesService } from './guides.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('guides')
+@Roles('ADMIN', 'OWNER')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class GuidesController {
   constructor(private guides: GuidesService) {}

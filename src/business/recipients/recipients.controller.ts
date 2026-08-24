@@ -14,8 +14,10 @@ import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateRecipientDto } from './dto/create-recipient.dto.js';
 import { UpdateRecipientDto } from './dto/update-recipient.dto.js';
 import { RecipientsService } from './recipients.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('recipients')
+@Roles('ADMIN', 'OWNER')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RecipientsController {
   constructor(private recipients: RecipientsService) {}

@@ -18,6 +18,7 @@ import { RoutesModule } from './business/routes/routes.module.js';
 import { StatisticsModule } from './statistics/statistics.module.js';
 import { AppController } from './app.controller.js';
 import { GenerateModule } from './generate/generate.module.js';
+import { PartnerModule } from './business/partner/partner.module.js';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { GenerateModule } from './generate/generate.module.js';
     RoutesModule,
     StatisticsModule,
     GenerateModule,
+    PartnerModule,
   ],
   providers: [
     {

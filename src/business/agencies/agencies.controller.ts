@@ -13,8 +13,10 @@ import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateAgencyDto } from './dto/create-agency.dto.js';
 import { UpdateAgencyDto } from './dto/update-agency.dto.js';
 import { AgenciesService } from './agencies.service.js';
+import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('agencies')
+@Roles('ADMIN', 'OWNER')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AgenciesController {
   constructor(private agencies: AgenciesService) {}

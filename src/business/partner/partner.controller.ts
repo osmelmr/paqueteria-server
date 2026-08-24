@@ -11,9 +11,37 @@ export class PartnerController {
   constructor(private readonly service: PartnerService) {}
 
   @Get()
-  getAll(@Req() req: any) {
+  getAll(
+    @Req() req: any,
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('guideId') guideId?: string,
+  ) {
     const user = req.user;
-    return this.service.getAll(user.agencyId);
+    return this.service.getAll(
+      user.agencyId,
+      search,
+      Number(page) || 1,
+      Number(limit) || 50,
+      guideId || undefined,
+    );
+  }
+
+  @Get('stats')
+  getStats(
+    @Req() req: any,
+    @Query('search') search?: string,
+    @Query('guideId') guideId?: string,
+  ) {
+    const user = req.user;
+    return this.service.getStats(user.agencyId, search, guideId || undefined);
+  }
+
+  @Get('guides')
+  getGuides(@Req() req: any) {
+    const user = req.user;
+    return this.service.getGuides(user.agencyId);
   }
 
   @Get('story')

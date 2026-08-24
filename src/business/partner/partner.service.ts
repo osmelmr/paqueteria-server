@@ -12,6 +12,16 @@ export class PartnerService {
           agencyId,
         },
       },
+      include: {
+        hbls: true,
+        recipient: true,
+        province: true,
+        municipe: true,
+        status: true,
+        location: true,
+        guide: { include: { agency: true } },
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -27,12 +37,14 @@ export class PartnerService {
       },
     });
     if (agencyId !== agency?.guide?.agencyId) {
-      return 'cagaste';
+      return [];
     }
     const stories = await this.prisma.packageStatusHistory.findMany({
       where: {
         packageId,
       },
+      orderBy: { createdAt: 'desc' },
+      include: { status: true, location: true },
     });
     return stories;
   }

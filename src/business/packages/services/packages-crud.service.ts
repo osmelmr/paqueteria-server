@@ -39,6 +39,7 @@ export class PackagesService {
     recipientId?: string;
     guideId?: string;
     search?: string;
+    idCard?: string;
     alert?: boolean;
     statusDate?: string;
     locationId?: string;
@@ -83,18 +84,13 @@ export class PackagesService {
       };
     if (filters.recipientId) where.recipientId = filters.recipientId;
     if (filters.guideId) where.guideId = filters.guideId;
-    if (filters.search) {
-      where.OR = [
-        { address: { contains: filters.search, mode: 'insensitive' } },
-        { content: { contains: filters.search, mode: 'insensitive' } },
-        {
-          hbls: {
-            some: {
-              hblCode: { contains: filters.search, mode: 'insensitive' },
-            },
-          },
-        },
-      ];
+    if (filters.idCard) {
+      const matchingRecipients = await this.prisma.recipient.findMany({
+        where: { idCard: { contains: filters.idCard, mode: 'insensitive' } },
+        select: { id: true },
+      });
+      const recipientIds = matchingRecipients.map((r) => r.id);
+      where.recipientId = { in: recipientIds };
     }
     const page = filters.page || 1;
     const limit = filters.limit || 50;

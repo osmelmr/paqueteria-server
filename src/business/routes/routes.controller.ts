@@ -107,6 +107,11 @@ export class RoutesController {
     return this.routes.update(id, dto);
   }
 
+  @Post('routes/:id/convert-hbls')
+  convertHbls(@Param('id') id: string) {
+    return this.routes.convertNotFoundHbls(id);
+  }
+
   @Delete('routes/:id')
   async removeRoute(@Param('id') id: string) {
     await this.routes.delete(id);

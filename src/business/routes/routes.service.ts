@@ -203,6 +203,74 @@ if (data.hbls !== undefined || data.notFound !== undefined) {
     }
   }
 
+  async convertNotFoundHbls(id: string) {
+    const route = await this.findById(id);
+
+    let notFound: string[] = [];
+    if (route.notFound) {
+      try {
+        const parsed: unknown = JSON.parse(route.notFound);
+        if (Array.isArray(parsed)) notFound = parsed.map(String);
+      } catch {
+        notFound = route.notFound
+          .split(/[\r\n,;]/)
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+      }
+    }
+
+    if (notFound.length === 0) {
+      throw new BadRequestException('No hay HBLs faltantes para convertir');
+    }
+
+    const [almacenStatus, almacenLocation] = await Promise.all([
+      this.prisma.status.findFirst({
+        where: { name: { contains: 'almacen', mode: 'insensitive' } },
+      }),
+      this.prisma.location.findFirst({
+        where: { name: { contains: 'almacen', mode: 'insensitive' } },
+      }),
+    ]);
+
+    if (!almacenStatus) {
+      throw new BadRequestException(
+        'No se encontro un estado que contenga "almacen"',
+      );
+    }
+    if (!almacenLocation) {
+      throw new BadRequestException(
+        'No se encontro una ubicacion que contenga "almacen"',
+      );
+    }
+
+    const createdPackages: string[] = [];
+
+    for (const hbl of notFound) {
+      const pkg = await this.prisma.package.create({
+        data: {
+          statusId: almacenStatus.id,
+          locationId: almacenLocation.id,
+          guideId: null,
+          recipientId: null,
+          provinceId: null,
+          municipeId: null,
+          routeId: id,
+        },
+      });
+      await this.prisma.packageHbl.create({
+        data: { packageId: pkg.id, hblCode: hbl },
+      });
+      createdPackages.push(hbl);
+    }
+
+    await this.prisma.route.update({
+      where: { id },
+      data: { notFound: null },
+    });
+
+    return this.findById(id);
+  }
+
   async delete(id: string) {
     await this.findById(id);
     await this.prisma.route.update({

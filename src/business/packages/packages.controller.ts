@@ -83,6 +83,14 @@ export class PackagesController {
     });
   }
 
+  @Roles('ADMIN', 'OWNER')
+  @Post('bulk-create')
+  bulkCreate(
+    @Body() body: { hbls: string[]; statusId: string; locationId: string },
+  ) {
+    return this.packages.bulkCreate(body.hbls, body.statusId, body.locationId);
+  }
+
   @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Get('by-hbl/:hbl')
   findByHbl(@Param('hbl') hbl: string) {

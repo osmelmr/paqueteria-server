@@ -273,6 +273,53 @@ export class PackagesService {
     });
   }
 
+  async bulkCreate(hbls: string[], statusId: string, locationId: string) {
+    await this.validateReferences(
+      this.prisma as any,
+      statusId,
+      locationId,
+    );
+
+    const uniqueHbls = [...new Set(hbls.map((h) => h.trim()).filter(Boolean))];
+    if (uniqueHbls.length === 0) {
+      throw new BadRequestException('Debe enviar al menos un HBL');
+    }
+
+    await this.assertHblsAvailable(
+      this.prisma as any,
+      uniqueHbls,
+    );
+
+    const created: Array<{ hbl: string; packageId: string }> = [];
+    const failed: Array<{ hbl: string; error: string }> = [];
+
+    for (const hbl of uniqueHbls) {
+      try {
+        const pkg = await this.prisma.$transaction(async (tx) => {
+          const newPkg = await tx.package.create({
+            data: { statusId, locationId },
+          });
+          await tx.packageStatusHistory.create({
+            data: {
+              packageId: newPkg.id,
+              statusId,
+              locationId,
+            },
+          });
+          await tx.packageHbl.create({
+            data: { packageId: newPkg.id, hblCode: hbl },
+          });
+          return newPkg;
+        });
+        created.push({ hbl, packageId: pkg.id });
+      } catch (err) {
+        failed.push({ hbl, error: (err as Error).message });
+      }
+    }
+
+    return { created, failed, total: uniqueHbls.length };
+  }
+
   async update(
     id: string,
     data: {

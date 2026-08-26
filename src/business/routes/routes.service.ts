@@ -228,7 +228,12 @@ if (data.hbls !== undefined || data.notFound !== undefined) {
         where: { name: { contains: 'almacen', mode: 'insensitive' } },
       }),
       this.prisma.location.findFirst({
-        where: { name: { contains: 'almacen', mode: 'insensitive' } },
+        where: {
+          AND: [
+            { name: { contains: 'almacen', mode: 'insensitive' } },
+            { name: { contains: 'habana', mode: 'insensitive' } },
+          ],
+        },
       }),
     ]);
 
@@ -239,7 +244,7 @@ if (data.hbls !== undefined || data.notFound !== undefined) {
     }
     if (!almacenLocation) {
       throw new BadRequestException(
-        'No se encontro una ubicacion que contenga "almacen"',
+        'No se encontro una ubicacion que contenga "almacen" y "habana"',
       );
     }
 

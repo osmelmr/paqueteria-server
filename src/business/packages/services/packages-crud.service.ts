@@ -285,11 +285,6 @@ export class PackagesService {
       throw new BadRequestException('Debe enviar al menos un HBL');
     }
 
-    await this.assertHblsAvailable(
-      this.prisma as any,
-      uniqueHbls,
-    );
-
     const created: Array<{ hbl: string; packageId: string }> = [];
     const failed: Array<{ hbl: string; error: string }> = [];
 

@@ -375,7 +375,8 @@ export class PackagesService {
       });
 
       const nextStatusId = packageData.statusId ?? existing.statusId;
-      const statusChanged = nextStatusId !== existing.statusId;
+      const nextLocationId = packageData.locationId ?? existing.locationId;
+      const statusChanged = nextStatusId !== existing.statusId || nextLocationId !== existing.locationId;
 
       if (statusChanged) {
         const historyLocationId =
@@ -433,6 +434,11 @@ export class PackagesService {
   ) {
     const pkg = await this.prisma.package.findUnique({ where: { id } });
     if (!pkg) throw new NotFoundException('Package not found');
+
+    const effectiveLocationId = locationId ?? pkg.locationId;
+    if (statusId === pkg.statusId && effectiveLocationId === pkg.locationId) {
+      return pkg;
+    }
 
     const historyLocationId = locationId ?? pkg.locationId ?? null;
     if (!historyLocationId) {

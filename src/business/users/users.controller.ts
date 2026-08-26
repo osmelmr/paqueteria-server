@@ -2,10 +2,12 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
@@ -23,7 +25,17 @@ export class UsersController {
   constructor(private users: UsersService) {}
 
   @Post()
-  create(@Body() dto: CreateUserDto) {
+  create(@Body() dto: CreateUserDto, @Req() req: any) {
+    if (dto.role === 'ADMIN') {
+      throw new ForbiddenException(
+        'No se puede crear un usuario con el rol ADMIN',
+      );
+    }
+    if (dto.role === 'OWNER' && req.user?.role !== 'ADMIN') {
+      throw new ForbiddenException(
+        'Solo un usuario ADMIN puede crear usuarios OWNER',
+      );
+    }
     return this.users.create(dto);
   }
 

@@ -92,7 +92,8 @@ export class UpdateStatusService {
 
         const effectiveLocationId = locationId ?? packageHbl.package.locationId;
         const sameStatus = statusId === packageHbl.package.statusId;
-        const sameLocation = effectiveLocationId === packageHbl.package.locationId;
+        const sameLocation =
+          effectiveLocationId === packageHbl.package.locationId;
 
         if (sameStatus && sameLocation) {
           updated.push({ hbl, package: packageHbl.package });

@@ -249,6 +249,20 @@ export class RoutesService {
     const createdPackages: string[] = [];
 
     for (const hbl of notFound) {
+      const existingHbl = await this.prisma.packageHbl.findFirst({
+        where: { hblCode: hbl },
+        include: { package: true },
+      });
+
+      if (existingHbl) {
+        await this.prisma.package.update({
+          where: { id: existingHbl.packageId },
+          data: { routeId: id },
+        });
+        createdPackages.push(hbl);
+        continue;
+      }
+
       try {
         const pkg = await this.prisma.package.create({
           data: {
@@ -268,16 +282,15 @@ export class RoutesService {
       } catch (error) {
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === 'P2002' &&
-          (error.meta as { target?: string[] })?.target?.includes('hbl_code')
+          error.code === 'P2002'
         ) {
-          const existingHbl = await this.prisma.packageHbl.findFirst({
+          const retry = await this.prisma.packageHbl.findFirst({
             where: { hblCode: hbl },
             include: { package: true },
           });
-          if (existingHbl) {
+          if (retry) {
             await this.prisma.package.update({
-              where: { id: existingHbl.packageId },
+              where: { id: retry.packageId },
               data: { routeId: id },
             });
             createdPackages.push(hbl);

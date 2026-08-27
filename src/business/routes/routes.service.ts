@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { Prisma } from '../../../generated/prisma/client.js';
 
 const routeInclude = {
   vehicle: { include: { drivers: { include: { driver: true } } } },
@@ -132,7 +133,7 @@ export class RoutesService {
       updateData.departureDate = new Date(data.departureDate);
     if (data.vehicleId !== undefined) updateData.vehicleId = data.vehicleId;
 
-if (data.hbls !== undefined || data.notFound !== undefined) {
+    if (data.hbls !== undefined || data.notFound !== undefined) {
       if (data.hbls !== undefined) {
         const uniqueHbls = Array.from(
           new Set(data.hbls.map((h) => h.trim()).filter(Boolean)),
@@ -161,10 +162,7 @@ if (data.hbls !== undefined || data.notFound !== undefined) {
       }
     }
 
-    if (
-      data.vehicleId !== undefined &&
-      data.vehicleId !== existing.vehicleId
-    ) {
+    if (data.vehicleId !== undefined && data.vehicleId !== existing.vehicleId) {
       const vehicle = await this.prisma.vehicle.findUnique({
         where: { id: data.vehicleId },
         include: { drivers: { select: { driverId: true } } },
@@ -251,21 +249,43 @@ if (data.hbls !== undefined || data.notFound !== undefined) {
     const createdPackages: string[] = [];
 
     for (const hbl of notFound) {
-      const pkg = await this.prisma.package.create({
-        data: {
-          statusId: almacenStatus.id,
-          locationId: almacenLocation.id,
-          guideId: null,
-          recipientId: null,
-          provinceId: null,
-          municipeId: null,
-          routeId: id,
-        },
-      });
-      await this.prisma.packageHbl.create({
-        data: { packageId: pkg.id, hblCode: hbl },
-      });
-      createdPackages.push(hbl);
+      try {
+        const pkg = await this.prisma.package.create({
+          data: {
+            statusId: almacenStatus.id,
+            locationId: almacenLocation.id,
+            guideId: null,
+            recipientId: null,
+            provinceId: null,
+            municipeId: null,
+            routeId: id,
+          },
+        });
+        await this.prisma.packageHbl.create({
+          data: { packageId: pkg.id, hblCode: hbl },
+        });
+        createdPackages.push(hbl);
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002' &&
+          (error.meta as { target?: string[] })?.target?.includes('hbl_code')
+        ) {
+          const existingHbl = await this.prisma.packageHbl.findFirst({
+            where: { hblCode: hbl },
+            include: { package: true },
+          });
+          if (existingHbl) {
+            await this.prisma.package.update({
+              where: { id: existingHbl.packageId },
+              data: { routeId: id },
+            });
+            createdPackages.push(hbl);
+            continue;
+          }
+        }
+        throw error;
+      }
     }
 
     await this.prisma.route.update({

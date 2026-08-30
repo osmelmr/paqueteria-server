@@ -404,6 +404,10 @@ export class GenerateService {
     let totalWeight = 0;
 
     const sortedPackages = [...route.packages].sort((a, b) => {
+      const provinceA = a.province?.name || 'Sin provincia';
+      const provinceB = b.province?.name || 'Sin provincia';
+      const cmp = provinceA.localeCompare(provinceB);
+      if (cmp !== 0) return cmp;
       const nameA = a.recipient?.fullName || '';
       const nameB = b.recipient?.fullName || '';
       return nameA.localeCompare(nameB);

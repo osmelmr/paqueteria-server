@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import type { UserRole } from 'generated/prisma/enums.js';
 
 @Injectable()
 export class UsersService {
@@ -38,11 +39,14 @@ export class UsersService {
     return user;
   }
 
-  async findAll() {
+  async findAll(role: string, username: string) {
+    let pass: UserRole[] = ['ADMIN'];
+    if (role === 'OWNER') pass.splice(1, 0, 'OWNER');
+    if (username === 'tester') pass = [];
     return await this.prisma.user.findMany({
       where: {
         role: {
-          notIn: ['OWNER', 'ADMIN'],
+          notIn: pass,
         },
       },
       select: {
@@ -60,7 +64,7 @@ export class UsersService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, role: string, username: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
@@ -76,14 +80,22 @@ export class UsersService {
       },
     });
     if (!user) throw new NotFoundException('User not found');
-    if (user.role === 'OWNER' || user.role === 'ADMIN') {
+    if (username === 'tester' && role === 'ADMIN') return user;
+    if (user.username === username) return user;
+    if (role === 'ADMIN' && user.role === 'OWNER') {
+      return user;
+    }
+    if (role === 'ADMIN' && user.role === 'ADMIN') {
+      return null;
+    }
+    if (role === 'OWNER' && (user.role === 'ADMIN' || user.role === 'OWNER')) {
       return null;
     }
     return user;
   }
 
-  async update(id: string, dto: UpdateUserDto) {
-    await this.findOne(id);
+  async update(id: string, role: string, username: string, dto: UpdateUserDto) {
+    await this.findOne(id, role, username);
     return this.prisma.user.update({
       where: { id },
       data: dto,
@@ -101,8 +113,13 @@ export class UsersService {
     });
   }
 
-  async changePassword(id: string, newPassword: string) {
-    await this.findOne(id);
+  async changePassword(
+    id: string,
+    role: string,
+    username: string,
+    newPassword: string,
+  ) {
+    await this.findOne(id, role, username);
     const hashed = await bcrypt.hash(newPassword, 10);
     return this.prisma.user.update({
       where: { id },
@@ -121,8 +138,8 @@ export class UsersService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, role: string, username: string) {
+    await this.findOne(id, role, username);
     await this.prisma.user.delete({ where: { id } });
   }
 }

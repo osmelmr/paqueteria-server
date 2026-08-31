@@ -14,9 +14,11 @@ datasource db {
 
 enum UserRole {
   ADMIN
-  OWNER
-  STOREKEEPER
+  OWNER 
+  AGENT
+  KEEPER
   WORKER
+  DRIVER
   PARTNER
 }
 

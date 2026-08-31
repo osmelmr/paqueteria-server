@@ -40,27 +40,36 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
-    return this.users.findAll();
+  findAll(@Req() req: any) {
+    return this.users.findAll(req.user?.role, req.user?.username);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.users.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.users.findOne(id, req.user?.role, req.user?.username);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.users.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateUserDto, @Req() req: any) {
+    return this.users.update(id, req.user?.role, req.user?.username, dto);
   }
 
   @Patch(':id/change-password')
-  changePassword(@Param('id') id: string, @Body() dto: ChangePasswordDto) {
-    return this.users.changePassword(id, dto.newPassword);
+  changePassword(
+    @Param('id') id: string,
+    @Body() dto: ChangePasswordDto,
+    @Req() req: any,
+  ) {
+    return this.users.changePassword(
+      id,
+      req.user?.role,
+      req.user?.username,
+      dto.newPassword,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.users.remove(id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.users.remove(id, req.user?.role, req.user?.username);
   }
 }

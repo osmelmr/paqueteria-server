@@ -7,11 +7,14 @@ export class StatisticsService {
 
   async main() {
     // buscar los ids de los estados relevantes
-    const [almacenadoStatus, entregadoStatus, esperaStatus] = await Promise.all(
-      [
+    const [almacenadoStatus, habanaLocation, entregadoStatus, esperaStatus] =
+      await Promise.all([
         this.prisma.status.findFirst({
           // buscar por contains 'almace' para cubrir variantes como 'almacen' o 'almacenado'
           where: { name: { contains: 'almace', mode: 'insensitive' } },
+        }),
+        this.prisma.location.findFirst({
+          where: { name: { contains: 'habana', mode: 'insensitive' } },
         }),
         this.prisma.status.findFirst({
           where: { name: { equals: 'entregado', mode: 'insensitive' } },
@@ -19,15 +22,29 @@ export class StatisticsService {
         this.prisma.status.findFirst({
           where: { name: { contains: 'espera', mode: 'insensitive' } },
         }),
-      ],
-    );
+      ]);
 
     const [almacenados, entregados, guiasActivas, enEspera, ultimasRutas] =
       await Promise.all([
         this.prisma.package.count({
-          where: almacenadoStatus
-            ? { statusId: almacenadoStatus.id }
-            : { status: { name: { contains: 'almace', mode: 'insensitive' } } },
+          where: {
+            AND: [
+              almacenadoStatus
+                ? { statusId: almacenadoStatus.id }
+                : {
+                    status: {
+                      name: { contains: 'almace', mode: 'insensitive' },
+                    },
+                  },
+              habanaLocation
+                ? { locationId: habanaLocation.id }
+                : {
+                    location: {
+                      name: { contains: 'habana', mode: 'insensitive' },
+                    },
+                  },
+            ],
+          },
         }),
         this.prisma.package.count({
           where: entregadoStatus

@@ -20,11 +20,11 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { username: dto.username },
     });
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) throw new UnauthorizedException('Wrong username');
 
     const valid = await bcryptCompare(dto.password, user.password);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
-    if (!user.isActive) throw new UnauthorizedException('Invalid credentials');
+    if (!valid) throw new UnauthorizedException('Wrong password');
+    if (!user.isActive) throw new UnauthorizedException("You don't have acces");
 
     const accessToken = this.generateAccessToken(user.id, user.role);
     const refreshToken = await this.generateRefreshToken(user.id);

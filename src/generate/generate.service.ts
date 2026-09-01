@@ -339,7 +339,7 @@ export class GenerateService {
     // Fila 1: Título MIPYME
     worksheet.mergeCells('A1:E1');
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = 'MIPYME TRANSPORTACIONES RODRIGEZ RIZO';
+    titleCell.value = 'MIPYME TRANSPORTACIONES RODRIGEZ-RIZO';
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
     titleCell.font = { bold: true, size: 16 };
 

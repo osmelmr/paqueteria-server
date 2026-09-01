@@ -61,7 +61,6 @@ export class AiClientService {
       - "phone": teléfono (string)
       - "province": nombre de la provincia (string)
       - "municipe": nombre del municipio (string)
-      - "arrivalDate": fecha de llegada en formato YYYY-MM-DD (string)
       - "hblCodes": arreglo de códigos HBL (array de strings)
       - "weight": peso en kg (número)
 
@@ -86,7 +85,6 @@ export class AiClientService {
             "phone": "555555555",
             "province": "La Habana",
             "municipe": "Cotorro",
-            "arrivalDate": "2026-07-24",
             "hblCodes": ["ABC123"],
             "weight": 33.5
           }
@@ -95,7 +93,7 @@ export class AiClientService {
       Si algún campo no se encuentra, usa null.
       Anotaciones que te pueden ayudar:
       - El número de teléfono es de Cuba siempre.
-      - El HBL suele estar entre corchetes [] o comienza con CM (mayúsculas/minúsculas) seguido de números y opcional letra final.
+      - El HBL suele estar entre corchetes [] o comienza con CM (mayúsculas/minúsculas) o ALB seguido de números y opcional letra final.
     `;
   }
 }

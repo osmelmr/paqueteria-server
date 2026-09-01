@@ -21,7 +21,7 @@ import { Roles } from '../../auth/decorators/roles.decorator.js';
 export class StatusesController {
   constructor(private statuses: StatusesService) {}
 
-  @Roles('STOREKEEPER', 'WORKER')
+  @Roles('KEEPER', 'WORKER', 'ADMIN', 'OWNER', 'AGENT')
   @Get()
   findAll() {
     return this.statuses.findAll();

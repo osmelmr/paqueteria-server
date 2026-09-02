@@ -159,12 +159,13 @@ export class PackagesService {
     });
     if (!packageHbl)
       throw new NotFoundException('Package not found for this HBL');
-    return packageHbl as any;
+    return packageHbl;
   }
 
   async checkHbls(
     hbls: string[],
   ): Promise<{ found: any[]; notFound: string[] }> {
+    // 1. Normalizar y deduplicar
     const unique: string[] = [];
     const seen = new Set<string>();
     for (const raw of hbls) {
@@ -174,14 +175,17 @@ export class PackagesService {
       unique.push(normalized);
     }
 
-    const found: any[] = [];
-    const foundPackageIds = new Set<string>();
-    const matched = new Set<string>();
-
+    // 2. Búsqueda exacta (UNA sola consulta)
     const exact = await this.prisma.packageHbl.findMany({
       where: { hblCode: { in: unique } },
       include: { package: { include: normalizePackageInclude(true) } },
     });
+
+    // 3. Mapear resultados
+    const matched = new Set<string>();
+    const found: any[] = [];
+    const foundPackageIds = new Set<string>();
+
     for (const match of exact) {
       matched.add(match.hblCode);
       if (!foundPackageIds.has(match.package.id)) {
@@ -190,21 +194,7 @@ export class PackagesService {
       }
     }
 
-    for (const hbl of unique) {
-      if (matched.has(hbl)) continue;
-      const fallback = await this.prisma.packageHbl.findFirst({
-        where: { hblCode: { contains: hbl } },
-        include: { package: { include: normalizePackageInclude(true) } },
-      });
-      if (fallback) {
-        matched.add(hbl);
-        if (!foundPackageIds.has(fallback.package.id)) {
-          foundPackageIds.add(fallback.package.id);
-          found.push(fallback.package);
-        }
-      }
-    }
-
+    // 4. Identificar no encontrados
     const notFound = unique.filter((hbl) => !matched.has(hbl));
 
     return { found, notFound };
@@ -274,11 +264,7 @@ export class PackagesService {
   }
 
   async bulkCreate(hbls: string[], statusId: string, locationId: string) {
-    await this.validateReferences(
-      this.prisma as any,
-      statusId,
-      locationId,
-    );
+    await this.validateReferences(this.prisma, statusId, locationId);
 
     const uniqueHbls = [...new Set(hbls.map((h) => h.trim()).filter(Boolean))];
     if (uniqueHbls.length === 0) {
@@ -371,7 +357,9 @@ export class PackagesService {
 
       const nextStatusId = packageData.statusId ?? existing.statusId;
       const nextLocationId = packageData.locationId ?? existing.locationId;
-      const statusChanged = nextStatusId !== existing.statusId || nextLocationId !== existing.locationId;
+      const statusChanged =
+        nextStatusId !== existing.statusId ||
+        nextLocationId !== existing.locationId;
 
       if (statusChanged) {
         const historyLocationId =

@@ -51,7 +51,7 @@ export class GenerateController {
     try {
       const { buffer, filename } = await this.generateService.generateExcel(
         id,
-        (req.user as { fullName?: string } | undefined)?.fullName,
+        req.user?.fullName,
       );
 
       res.setHeader(

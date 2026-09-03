@@ -45,10 +45,10 @@ export class CreatePackageDto {
   statusDate?: string;
 
   @IsString()
-  statusId: string;
+  statusId!: string;
 
   @IsString()
-  locationId: string;
+  locationId!: string;
 
   @IsOptional()
   @IsString()

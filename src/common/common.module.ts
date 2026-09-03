@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { PackageWriterService } from './package-writer.service.js';
 
-@Module({})
+@Global()
+@Module({
+  providers: [PackageWriterService],
+  exports: [PackageWriterService],
+})
 export class CommonModule {}

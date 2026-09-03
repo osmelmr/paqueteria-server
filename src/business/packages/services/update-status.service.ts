@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service.js';
+import { normalizeHbl } from '../../../common/utils/normalize-hbls.js';
 
 @Injectable()
 export class UpdateStatusService {
@@ -13,7 +14,7 @@ export class UpdateStatusService {
   ) {
     // 1. Normalizar y limpiar la lista de HBLs
     const normalizedHbls = hbls
-      .map((h) => this.normalizeHbl(h))
+      .map((h) => normalizeHbl(h))
       .filter((h) => h.length > 0);
     const uniqueHbls = [...new Set(normalizedHbls)];
 
@@ -56,7 +57,7 @@ export class UpdateStatusService {
       const success: Array<{ hbl: string; package: any }> = [];
       const failed: string[] = [];
       for (const hbl of hbls) {
-        const norm = this.normalizeHbl(hbl);
+        const norm = normalizeHbl(hbl);
         const pkg = foundMap.get(norm);
         if (pkg) {
           success.push({ hbl, package: pkg });
@@ -80,7 +81,7 @@ export class UpdateStatusService {
 
     // 5. Procesar cada HBL (usando el mapa para O(1))
     for (const hbl of hbls) {
-      const normalized = this.normalizeHbl(hbl);
+      const normalized = normalizeHbl(hbl);
       const packageHbl = hblMap.get(normalized);
 
       if (!packageHbl) {
@@ -139,9 +140,5 @@ export class UpdateStatusService {
     }
 
     return { success, failed };
-  }
-
-  private normalizeHbl(hbl: string): string {
-    return hbl.trim().replace(/^CM0?/i, '').replace(/AI$/i, '');
   }
 }

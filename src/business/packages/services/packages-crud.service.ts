@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service.js';
+import { normalizeHbl } from '../../../common/utils/normalize-hbls.js';
 
 function normalizePackageInclude(includeHistory = false) {
   return {
@@ -169,7 +170,7 @@ export class PackagesService {
     const unique: string[] = [];
     const seen = new Set<string>();
     for (const raw of hbls) {
-      const normalized = this.normalizeHbl(raw);
+      const normalized = normalizeHbl(raw);
       if (!normalized || seen.has(normalized)) continue;
       seen.add(normalized);
       unique.push(normalized);
@@ -198,10 +199,6 @@ export class PackagesService {
     const notFound = unique.filter((hbl) => !matched.has(hbl));
 
     return { found, notFound };
-  }
-
-  private normalizeHbl(hbl: string): string {
-    return hbl.trim().replace(/^CM0?/i, '').replace(/AI$/i, '');
   }
 
   async create(data: {

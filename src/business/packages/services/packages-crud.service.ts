@@ -263,10 +263,13 @@ export class PackagesService {
   async bulkCreate(hbls: string[], statusId: string, locationId: string) {
     await this.validateReferences(this.prisma, statusId, locationId);
 
-    const uniqueHbls = [...new Set(hbls.map((h) => h.trim()).filter(Boolean))];
-    if (uniqueHbls.length === 0) {
-      throw new BadRequestException('Debe enviar al menos un HBL');
-    }
+    // 1. Normalizar cada HBL
+    const normalizedHbls = hbls
+      .map((h) => normalizeHbl(h)) // ← Aplicar normalización
+      .filter((h) => h.length > 0); // Eliminar vacíos después de normalizar
+
+    // 2. Deduplicar
+    const uniqueHbls = [...new Set(normalizedHbls)];
 
     const created: Array<{ hbl: string; packageId: string }> = [];
     const failed: Array<{ hbl: string; error: string }> = [];

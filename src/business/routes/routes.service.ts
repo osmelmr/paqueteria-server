@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { Prisma } from '../../../generated/prisma/client.js';
 
 const routeInclude = {
   vehicle: { include: { drivers: { include: { driver: true } } } },
@@ -199,114 +198,6 @@ export class RoutesService {
     if (found.length !== driverIds.length) {
       throw new BadRequestException('Alguno de los conductores no existe');
     }
-  }
-
-  async convertNotFoundHbls(id: string) {
-    const route = await this.findById(id);
-
-    let notFound: string[] = [];
-    if (route.notFound) {
-      try {
-        const parsed: unknown = JSON.parse(route.notFound);
-        if (Array.isArray(parsed)) notFound = parsed.map(String);
-      } catch {
-        notFound = route.notFound
-          .split(/[\r\n,;]/)
-          .map((s: string) => s.trim())
-          .filter(Boolean);
-      }
-    }
-
-    if (notFound.length === 0) {
-      throw new BadRequestException('No hay HBLs faltantes para convertir');
-    }
-
-    const [almacenStatus, almacenLocation] = await Promise.all([
-      this.prisma.status.findFirst({
-        where: { name: { contains: 'almacen', mode: 'insensitive' } },
-      }),
-      this.prisma.location.findFirst({
-        where: {
-          AND: [
-            { name: { contains: 'almacen', mode: 'insensitive' } },
-            { name: { contains: 'habana', mode: 'insensitive' } },
-          ],
-        },
-      }),
-    ]);
-
-    if (!almacenStatus) {
-      throw new BadRequestException(
-        'No se encontro un estado que contenga "almacen"',
-      );
-    }
-    if (!almacenLocation) {
-      throw new BadRequestException(
-        'No se encontro una ubicacion que contenga "almacen" y "habana"',
-      );
-    }
-
-    const createdPackages: string[] = [];
-
-    for (const hbl of notFound) {
-      const existingHbl = await this.prisma.packageHbl.findFirst({
-        where: { hblCode: hbl },
-        include: { package: true },
-      });
-
-      if (existingHbl) {
-        await this.prisma.package.update({
-          where: { id: existingHbl.packageId },
-          data: { routeId: id },
-        });
-        createdPackages.push(hbl);
-        continue;
-      }
-
-      try {
-        const pkg = await this.prisma.package.create({
-          data: {
-            statusId: almacenStatus.id,
-            locationId: almacenLocation.id,
-            guideId: null,
-            recipientId: null,
-            provinceId: null,
-            municipeId: null,
-            routeId: id,
-          },
-        });
-        await this.prisma.packageHbl.create({
-          data: { packageId: pkg.id, hblCode: hbl },
-        });
-        createdPackages.push(hbl);
-      } catch (error) {
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === 'P2002'
-        ) {
-          const retry = await this.prisma.packageHbl.findFirst({
-            where: { hblCode: hbl },
-            include: { package: true },
-          });
-          if (retry) {
-            await this.prisma.package.update({
-              where: { id: retry.packageId },
-              data: { routeId: id },
-            });
-            createdPackages.push(hbl);
-            continue;
-          }
-        }
-        throw error;
-      }
-    }
-
-    await this.prisma.route.update({
-      where: { id },
-      data: { notFound: null },
-    });
-
-    return this.findById(id);
   }
 
   async delete(id: string) {

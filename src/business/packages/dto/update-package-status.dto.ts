@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class UpdatePackageStatusDto {
   @IsString()
-  statusId?: string;
+  statusId!: string;
 
   @IsOptional()
   @IsString()

@@ -38,6 +38,7 @@ model User {
   agency    Agency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
 
   @@map("users")
+  packageStatusHistories PackageStatusHistory[]
 }
 
 model RefreshToken {
@@ -118,11 +119,15 @@ model Status {
 }
 
 model PackageStatusHistory {
-  id        String   @id @default(uuid()) @db.Uuid
-  packageId String   @map("package_id") @db.Uuid
-  statusId  String   @map("status_id") @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
+  packageId   String   @map("package_id") @db.Uuid
+  statusId    String   @map("status_id") @db.Uuid
   locationId  String   @map("location_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  userId      String?   @map("user_id") @db.Uuid 
+  user        User?     @relation(fields: [userId], references: [id]) 
+  realyCreatedAt DateTime @map("realy_created_at") @db.Timestamptz() @default(now())
 
   package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
   status  Status  @relation(fields: [statusId], references: [id])

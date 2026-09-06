@@ -16,7 +16,7 @@ import { MunicipesService } from './municipes.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('municipes')
-@Roles('ADMIN', 'OWNER')
+@Roles('ADMIN', 'OWNER', 'AGENT')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class MunicipesController {
   constructor(private municipes: MunicipesService) {}
@@ -32,11 +32,13 @@ export class MunicipesController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'OWNER')
   update(@Param('id') id: string, @Body() dto: UpdateMunicipeDto) {
     return this.municipes.update(id, dto.name, dto.header);
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'OWNER')
   async remove(@Param('id') id: string) {
     await this.municipes.delete(id);
   }

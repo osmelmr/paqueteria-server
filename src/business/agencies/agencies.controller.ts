@@ -22,11 +22,13 @@ export class AgenciesController {
   constructor(private agencies: AgenciesService) {}
 
   @Get()
+  @Roles('ADMIN', 'OWNER', 'AGENT')
   findAll() {
     return this.agencies.findAll();
   }
 
   @Post()
+  @Roles('ADMIN', 'OWNER', 'AGENT')
   create(@Body() dto: CreateAgencyDto) {
     return this.agencies.create(dto.name);
   }

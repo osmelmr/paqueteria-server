@@ -50,7 +50,7 @@ export class BusinessService {
     }
   }
 
-  async processBulkAiEntities(entities: BulkAiEntities) {
+  async processBulkAiEntities(entities: BulkAiEntities, userId: string) {
     const businesEntities = await this.resolverBulkAiEntitiesUtility(entities);
     /*a partir de esto ahora el debe crear una variable seccess y una variable failed
     entonces procedera a recorrer cada elemento del arreglo de businessEntity que obtiene de 
@@ -80,6 +80,7 @@ export class BusinessService {
               packageId: created.id,
               statusId: packageData.statusId,
               locationId: packageData.locationId,
+              userId,
             },
           });
           if (entity.hblCodes?.length > 0) {

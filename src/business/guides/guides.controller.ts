@@ -18,7 +18,7 @@ import { GuidesService } from './guides.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('guides')
-@Roles('ADMIN', 'OWNER')
+@Roles('ADMIN', 'OWNER', 'AGENT')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class GuidesController {
   constructor(private guides: GuidesService) {}
@@ -39,21 +39,25 @@ export class GuidesController {
   }
 
   @Post('upload')
+  @Roles('ADMIN', 'OWNER')
   upload(@Body() dto: UploadGuideDto) {
     return this.guides.uploadPreview(dto.rows);
   }
 
   @Post('confirm')
+  @Roles('ADMIN', 'OWNER')
   confirm(@Body() dto: ConfirmGuideDto) {
     return this.guides.confirm(dto);
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'OWNER')
   update(@Param('id') id: string, @Body() dto: UpdateGuideDto) {
     return this.guides.update(id, dto);
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'OWNER')
   async remove(@Param('id') id: string) {
     await this.guides.delete(id);
   }

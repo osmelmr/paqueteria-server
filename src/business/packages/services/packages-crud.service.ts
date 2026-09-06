@@ -201,23 +201,26 @@ export class PackagesService {
     return { found, notFound };
   }
 
-  async create(data: {
-    guideId?: string;
-    recipientId?: string;
-    provinceId?: string;
-    municipeId?: string;
-    address?: string;
-    weight?: number;
-    content?: string;
-    arrivalDate?: string;
-    statusDate?: string;
-    statusId: string;
-    locationId: string;
-    anotations?: string;
-    alert?: boolean;
-    alertDescription?: string;
-    hbls?: string[];
-  }) {
+  async create(
+    data: {
+      guideId?: string;
+      recipientId?: string;
+      provinceId?: string;
+      municipeId?: string;
+      address?: string;
+      weight?: number;
+      content?: string;
+      arrivalDate?: string;
+      statusDate?: string;
+      statusId: string;
+      locationId: string;
+      anotations?: string;
+      alert?: boolean;
+      alertDescription?: string;
+      hbls?: string[];
+    },
+    userId: string,
+  ) {
     const { hbls, statusDate: _statusDate, ...packageData } = data;
 
     return this.prisma.$transaction(async (tx) => {
@@ -244,6 +247,7 @@ export class PackagesService {
           packageId: pkg.id,
           statusId: packageData.statusId,
           locationId: packageData.locationId,
+          userId,
         },
       });
 
@@ -260,7 +264,12 @@ export class PackagesService {
     });
   }
 
-  async bulkCreate(hbls: string[], statusId: string, locationId: string) {
+  async bulkCreate(
+    hbls: string[],
+    statusId: string,
+    locationId: string,
+    userId: string,
+  ) {
     await this.validateReferences(this.prisma, statusId, locationId);
 
     // 1. Normalizar cada HBL
@@ -285,6 +294,7 @@ export class PackagesService {
               packageId: newPkg.id,
               statusId,
               locationId,
+              userId,
             },
           });
           await tx.packageHbl.create({
@@ -320,6 +330,7 @@ export class PackagesService {
       alertDescription?: string;
       hbls?: string[];
     },
+    userId: string,
   ) {
     const { hbls, statusDate: _statusDate, ...packageData } = data;
 
@@ -380,6 +391,7 @@ export class PackagesService {
         await tx.packageStatusHistory.create({
           data: {
             packageId: id,
+            userId,
             statusId: nextStatusId,
             locationId: historyLocationId,
             ...(data.statusDate
@@ -414,6 +426,7 @@ export class PackagesService {
     statusId: string,
     locationId?: string,
     statusDate?: string,
+    userId?: string,
   ) {
     const pkg = await this.prisma.package.findUnique({ where: { id } });
     if (!pkg) throw new NotFoundException('Package not found');
@@ -446,6 +459,7 @@ export class PackagesService {
       await tx.packageStatusHistory.create({
         data: {
           packageId: updated.id,
+          userId,
           statusId,
           locationId: historyLocationId,
           ...(statusDate ? { createdAt: new Date(statusDate) } : {}),

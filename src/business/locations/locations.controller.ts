@@ -16,7 +16,7 @@ import { LocationsService } from './locations.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('locations')
-@Roles('ADMIN', 'OWNER')
+@Roles('ADMIN', 'OWNER', 'AGENT')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class LocationsController {
   constructor(private locations: LocationsService) {}
@@ -32,11 +32,13 @@ export class LocationsController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'OWNER')
   update(@Param('id') id: string, @Body() dto: UpdateLocationDto) {
     return this.locations.update(id, dto);
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'OWNER')
   async remove(@Param('id') id: string) {
     await this.locations.delete(id);
   }

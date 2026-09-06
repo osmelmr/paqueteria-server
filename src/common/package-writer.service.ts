@@ -66,7 +66,7 @@ export class PackageWriterService {
     }
   }
 
-  async create(data: CreatePackageData) {
+  async create(data: CreatePackageData, userId: string) {
     const { hbls, ...packageData } = data;
     const normalizedHbls = this.normalizeHbls(hbls ?? []);
 
@@ -105,6 +105,7 @@ export class PackageWriterService {
       await tx.packageStatusHistory.create({
         data: {
           packageId: pkg.id,
+          userId,
           statusId: packageData.statusId,
           locationId: packageData.locationId,
         },
@@ -138,7 +139,7 @@ export class PackageWriterService {
     });
   }
 
-  async update(id: string, data: UpdatePackageData) {
+  async update(id: string, data: UpdatePackageData, userId: string) {
     const { hbls, statusDate, ...updateData } = data;
 
     return this.prisma.$transaction(async (tx) => {
@@ -209,6 +210,7 @@ export class PackageWriterService {
         await tx.packageStatusHistory.create({
           data: {
             packageId: id,
+            userId,
             statusId: nextStatusId,
             locationId: historyLocationId,
             createdAt: statusDate ? new Date(statusDate) : new Date(),

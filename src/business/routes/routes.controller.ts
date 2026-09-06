@@ -22,7 +22,7 @@ import { RoutesService } from './routes.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller()
-@Roles('ADMIN', 'OWNER')
+@Roles('ADMIN', 'OWNER', 'AGENT')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RoutesController {
   constructor(
@@ -54,6 +54,7 @@ export class RoutesController {
   }
 
   @Delete('vehicles/:id')
+  @Roles('ADMIN', 'OWNER')
   async removeVehicle(@Param('id') id: string) {
     await this.vehicles.delete(id);
   }
@@ -81,6 +82,7 @@ export class RoutesController {
   }
 
   @Delete('drivers/:id')
+  @Roles('ADMIN', 'OWNER')
   async removeDriver(@Param('id') id: string) {
     await this.drivers.delete(id);
   }

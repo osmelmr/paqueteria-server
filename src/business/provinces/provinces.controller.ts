@@ -16,7 +16,7 @@ import { ProvincesService } from './provinces.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('provinces')
-@Roles('ADMIN', 'OWNER')
+@Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER', 'AGENT')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProvincesController {
   constructor(private provinces: ProvincesService) {}
@@ -32,11 +32,13 @@ export class ProvincesController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'OWNER')
   update(@Param('id') id: string, @Body() dto: UpdateProvinceDto) {
     return this.provinces.update(id, dto.name);
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'OWNER')
   async remove(@Param('id') id: string) {
     await this.provinces.delete(id);
   }

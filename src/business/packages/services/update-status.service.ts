@@ -11,6 +11,7 @@ export class UpdateStatusService {
     statusId?: string,
     locationId?: string,
     statusDate?: string,
+    userId?: string,
   ) {
     // 1. Normalizar y limpiar la lista de HBLs
     const normalizedHbls = hbls
@@ -125,6 +126,7 @@ export class UpdateStatusService {
               data: {
                 packageId: pkg.id,
                 statusId,
+                userId,
                 locationId: historyLocationId,
                 createdAt: statusDate ?? new Date().toISOString(),
               },

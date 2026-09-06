@@ -17,7 +17,7 @@ import { RecipientsService } from './recipients.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 
 @Controller('recipients')
-@Roles('ADMIN', 'OWNER')
+@Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER', 'AGENT')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RecipientsController {
   constructor(private recipients: RecipientsService) {}
@@ -50,11 +50,13 @@ export class RecipientsController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'OWNER')
   update(@Param('id') id: string, @Body() dto: UpdateRecipientDto) {
     return this.recipients.update(id, dto);
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'OWNER')
   async remove(@Param('id') id: string) {
     await this.recipients.delete(id);
   }

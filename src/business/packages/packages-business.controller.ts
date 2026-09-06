@@ -4,6 +4,8 @@ import {
   Param,
   Patch,
   Post,
+  Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
@@ -13,6 +15,7 @@ import { BulkAiEntities } from './dto/business-ia-entity.dto.js';
 import { UpdateStatusService } from './services/update-status.service.js';
 import { PackageAlertService } from './services/package-alert.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
+import type { Request } from 'express';
 
 @Controller('business')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -24,8 +27,12 @@ export class BusinessController {
   ) {}
   @Roles('ADMIN', 'OWNER')
   @Post('process-bulk-ai')
-  async processBulkAi(@Body() entities: BulkAiEntities) {
-    return this.businessService.processBulkAiEntities(entities);
+  async processBulkAi(@Body() entities: BulkAiEntities, @Req() req: Request) {
+    if (!req.user?.id) {
+      return UnauthorizedException;
+    }
+    const userId = req.user.id;
+    return this.businessService.processBulkAiEntities(entities, userId);
   }
 
   @Roles('ADMIN', 'OWNER')
@@ -38,12 +45,15 @@ export class BusinessController {
       locationId?: string;
       statusDate?: string;
     },
+    @Req() req: Request,
   ) {
+    const userId = req.user?.id;
     return this.updateStatusService.updateStatusByBulk(
       body.hbls,
       body.statusId,
       body.locationId,
       body.statusDate,
+      userId,
     );
   }
 

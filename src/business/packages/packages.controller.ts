@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
@@ -18,16 +19,17 @@ import { UpdatePackageStatusDto } from './dto/update-package-status.dto.js';
 import { PackagesService } from './services/packages-crud.service.js';
 import { PackageHistoryService } from './services/package-history.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
+import type { Request } from 'express';
 
 @Controller('packages')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER', 'AGENT')
 export class PackagesController {
   constructor(
     private packages: PackagesService,
     private packageHistory: PackageHistoryService,
   ) {}
 
-  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Get()
   findAll(
     @Query('status') status?: string,
@@ -87,17 +89,22 @@ export class PackagesController {
   @Post('bulk-create')
   bulkCreate(
     @Body() body: { hbls: string[]; statusId: string; locationId: string },
+    @Req() req: Request,
   ) {
-    return this.packages.bulkCreate(body.hbls, body.statusId, body.locationId);
+    const userId = req.user!.id;
+    return this.packages.bulkCreate(
+      body.hbls,
+      body.statusId,
+      body.locationId,
+      userId,
+    );
   }
 
-  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Get('by-hbl/:hbl')
   findByHbl(@Param('hbl') hbl: string) {
     return this.packages.findByHbl(hbl);
   }
 
-  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.packages.findById(id);
@@ -109,7 +116,6 @@ export class PackagesController {
     return this.packageHistory.history(id);
   }
 
-  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Post('check-hbls')
   checkHbls(@Body() body: { hbls?: string[] }) {
     const hbls = Array.isArray(body?.hbls) ? body.hbls : [];
@@ -119,26 +125,37 @@ export class PackagesController {
     return this.packages.checkHbls(hbls);
   }
 
-  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
   @Post()
-  create(@Body() dto: CreatePackageDto) {
-    return this.packages.create(dto);
+  create(@Body() dto: CreatePackageDto, @Req() req: Request) {
+    const userId = req.user!.id;
+    return this.packages.create(dto, userId);
   }
 
   @Roles('ADMIN', 'OWNER')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdatePackageDto) {
-    return this.packages.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePackageDto,
+    @Req() req: Request,
+  ) {
+    const userId = req.user!.id;
+    return this.packages.update(id, dto, userId);
   }
 
-  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
+  @Roles('ADMIN', 'OWNER')
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdatePackageStatusDto) {
+  updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdatePackageStatusDto,
+    @Req() req: Request,
+  ) {
+    const userId = req.user?.id;
     return this.packages.updateStatus(
       id,
       dto.statusId,
       dto.locationId,
       dto.statusDate,
+      userId,
     );
   }
 

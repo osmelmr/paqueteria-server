@@ -237,7 +237,7 @@ export class GenerateService {
                   ],
                   [
                     { text: 'Peso:', style: 'etiqueta', margin: [0, 0, 6, 0] },
-                    { text: `${weight} kg`, style: 'valor' },
+                    { text: `${weight} lb`, style: 'valor' },
                   ],
                 ],
               },

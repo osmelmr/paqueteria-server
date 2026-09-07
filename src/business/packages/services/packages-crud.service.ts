@@ -32,6 +32,7 @@ export class PackagesService {
 
   async findAll(filters: {
     status?: string;
+    statusIds?: string[];
     provinceId?: string;
     provinceIds?: string[];
     municipeId?: string;
@@ -52,7 +53,11 @@ export class PackagesService {
     limit?: number;
   }) {
     const where: any = {};
-    if (filters.status) where.statusId = filters.status;
+    if (filters.statusIds?.length) {
+      where.statusId = { in: filters.statusIds };
+    } else if (filters.status) {
+      where.statusId = filters.status;
+    }
     if (filters.provinceIds?.length) {
       where.provinceId = { in: filters.provinceIds };
     } else if (filters.provinceId) {

@@ -33,6 +33,7 @@ export class PackagesController {
   @Get()
   findAll(
     @Query('status') status?: string,
+    @Query('statusIds') statusIds?: string,
     @Query('provinceId') provinceId?: string,
     @Query('provinceIds') provinceIds?: string,
     @Query('municipeId') municipeId?: string,
@@ -67,6 +68,7 @@ export class PackagesController {
     }
     return this.packages.findAll({
       status,
+      statusIds: statusIds ? statusIds.split(',').filter(Boolean) : undefined,
       provinceId,
       provinceIds: provinceIds
         ? provinceIds.split(',').filter(Boolean)
@@ -120,6 +122,15 @@ export class PackagesController {
   @Get(':id/history')
   history(@Param('id') id: string) {
     return this.packageHistory.history(id);
+  }
+
+  @Roles('ADMIN')
+  @Delete(':id/history/:historyId')
+  removeHistory(
+    @Param('id') id: string,
+    @Param('historyId') historyId: string,
+  ) {
+    return this.packageHistory.remove(id, historyId);
   }
 
   @Post('check-hbls')

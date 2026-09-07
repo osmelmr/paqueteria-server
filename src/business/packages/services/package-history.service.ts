@@ -18,4 +18,22 @@ export class PackageHistoryService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async remove(packageId: string, historyId: string) {
+    const pkg = await this.prisma.package.findUnique({
+      where: { id: packageId },
+      select: { id: true },
+    });
+    if (!pkg) throw new NotFoundException('Package not found');
+
+    const entry = await this.prisma.packageStatusHistory.findFirst({
+      where: { id: historyId, packageId },
+    });
+    if (!entry) {
+      throw new NotFoundException('Movimiento de historial no encontrado');
+    }
+
+    await this.prisma.packageStatusHistory.delete({ where: { id: historyId } });
+    return { success: true };
+  }
 }

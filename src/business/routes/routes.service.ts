@@ -19,6 +19,15 @@ const routeInclude = {
   },
 };
 
+function toDepartureDate(value: string): Date | undefined {
+  const d =
+    value && /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? new Date(`${value}T12:00:00.000Z`)
+      : new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d;
+}
+
 @Injectable()
 export class RoutesService {
   constructor(private prisma: PrismaService) {}
@@ -78,8 +87,12 @@ export class RoutesService {
       description: data.description,
       vehicleId: data.vehicleId,
     };
-    if (data.departureDate)
-      createData.departureDate = new Date(data.departureDate);
+    if (data.departureDate) {
+      const departureDate = toDepartureDate(data.departureDate);
+      if (!departureDate)
+        throw new BadRequestException('Fecha de salida inválida');
+      createData.departureDate = departureDate;
+    }
     if (packageIds.length > 0)
       createData.packages = { connect: packageIds.map((id) => ({ id })) };
     createData.notFound = notFound.length > 0 ? JSON.stringify(notFound) : null;
@@ -128,8 +141,12 @@ export class RoutesService {
       updateData.name = data.name.toUpperCase().trim();
     if (data.description !== undefined)
       updateData.description = data.description;
-    if (data.departureDate !== undefined)
-      updateData.departureDate = new Date(data.departureDate);
+    if (data.departureDate !== undefined) {
+      const departureDate = toDepartureDate(data.departureDate);
+      if (!departureDate)
+        throw new BadRequestException('Fecha de salida inválida');
+      updateData.departureDate = departureDate;
+    }
     if (data.vehicleId !== undefined) updateData.vehicleId = data.vehicleId;
 
     if (data.hbls !== undefined || data.notFound !== undefined) {

@@ -36,10 +36,12 @@ export class PackagesController {
     @Query('provinceId') provinceId?: string,
     @Query('provinceIds') provinceIds?: string,
     @Query('municipeId') municipeId?: string,
+    @Query('municipeIds') municipeIds?: string,
     @Query('header') header?: string,
     @Query('hbl') hbl?: string,
     @Query('recipientId') recipientId?: string,
     @Query('guideId') guideId?: string,
+    @Query('guideIds') guideIds?: string,
     @Query('idCard') idCard?: string,
     @Query('alert') alert?: string,
     @Query('statusDate') statusDate?: string,
@@ -70,10 +72,14 @@ export class PackagesController {
         ? provinceIds.split(',').filter(Boolean)
         : undefined,
       municipeId,
+      municipeIds: municipeIds
+        ? municipeIds.split(',').filter(Boolean)
+        : undefined,
       header: header !== undefined ? header === 'true' : undefined,
       hbl,
       recipientId,
       guideId,
+      guideIds: guideIds ? guideIds.split(',').filter(Boolean) : undefined,
       idCard,
       alert: alert !== undefined ? alert === 'true' : undefined,
       statusDate: statusDate || undefined,

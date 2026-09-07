@@ -35,10 +35,12 @@ export class PackagesService {
     provinceId?: string;
     provinceIds?: string[];
     municipeId?: string;
+    municipeIds?: string[];
     header?: boolean;
     hbl?: string;
     recipientId?: string;
     guideId?: string;
+    guideIds?: string[];
     search?: string;
     idCard?: string;
     alert?: boolean;
@@ -58,6 +60,8 @@ export class PackagesService {
     }
     if (filters.header) {
       where.municipe = { header: true };
+    } else if (filters.municipeIds?.length) {
+      where.municipeId = { in: filters.municipeIds };
     } else if (filters.municipeId) {
       where.municipeId = filters.municipeId;
     }
@@ -84,7 +88,11 @@ export class PackagesService {
         some: { hblCode: { contains: filters.hbl, mode: 'insensitive' } },
       };
     if (filters.recipientId) where.recipientId = filters.recipientId;
-    if (filters.guideId) where.guideId = filters.guideId;
+    if (filters.guideIds?.length) {
+      where.guideId = { in: filters.guideIds };
+    } else if (filters.guideId) {
+      where.guideId = filters.guideId;
+    }
     if (filters.idCard) {
       const matchingRecipients = await this.prisma.recipient.findMany({
         where: { idCard: { contains: filters.idCard, mode: 'insensitive' } },

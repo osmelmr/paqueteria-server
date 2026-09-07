@@ -56,6 +56,15 @@ export class StatusesService {
 
   async delete(id: string) {
     await this.findById(id);
+    const [packages, histories] = await Promise.all([
+      this.prisma.package.count({ where: { statusId: id } }),
+      this.prisma.packageStatusHistory.count({ where: { statusId: id } }),
+    ]);
+    if (packages > 0 || histories > 0) {
+      throw new ConflictException(
+        'No se puede eliminar un estado con paquetes o movimientos asociados',
+      );
+    }
     await this.prisma.status.delete({ where: { id } });
   }
 }

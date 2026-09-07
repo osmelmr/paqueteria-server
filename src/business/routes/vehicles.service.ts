@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
@@ -67,7 +67,13 @@ export class VehiclesService {
   }
 
   async delete(id: string) {
-    await this.findById(id);
+    const vehicle = await this.findById(id);
+    const routes = await this.prisma.route.count({ where: { vehicleId: id } });
+    if (routes > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar un vehículo con rutas asociadas',
+      );
+    }
     await this.prisma.driverVehicle.deleteMany({ where: { vehicleId: id } });
     await this.prisma.vehicle.delete({ where: { id } });
   }

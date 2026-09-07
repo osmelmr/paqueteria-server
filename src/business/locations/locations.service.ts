@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { normalizeText } from '../../common/utils/normalize-text.js';
 
@@ -30,6 +34,15 @@ export class LocationsService {
 
   async delete(id: string) {
     await this.findById(id);
+    const [packages, histories] = await Promise.all([
+      this.prisma.package.count({ where: { locationId: id } }),
+      this.prisma.packageStatusHistory.count({ where: { locationId: id } }),
+    ]);
+    if (packages > 0 || histories > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar una ubicación con paquetes o movimientos asociados',
+      );
+    }
     await this.prisma.location.delete({ where: { id } });
   }
 }

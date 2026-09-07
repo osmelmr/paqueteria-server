@@ -26,6 +26,11 @@ export class MunicipesController {
     return this.municipes.findAll();
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.municipes.findById(id);
+  }
+
   @Post()
   create(@Body() dto: CreateMunicipeDto) {
     return this.municipes.create(dto.name, dto.header);

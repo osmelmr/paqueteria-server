@@ -26,6 +26,11 @@ export class LocationsController {
     return this.locations.findAll();
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.locations.findById(id);
+  }
+
   @Post()
   create(@Body() dto: CreateLocationDto) {
     return this.locations.create(dto.name);

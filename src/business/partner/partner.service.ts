@@ -34,6 +34,19 @@ export class PartnerService {
     limit = 50,
     guideId?: string,
   ) {
+    if (!agencyId) {
+      return {
+        items: [],
+        pagination: {
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      };
+    }
     const where = this.buildWhere(agencyId, search, guideId);
     const skip = (page - 1) * limit;
 
@@ -72,6 +85,9 @@ export class PartnerService {
   }
 
   async getStats(agencyId: string, search?: string, guideId?: string) {
+    if (!agencyId) {
+      return { total: 0, byStatus: [] };
+    }
     const where = this.buildWhere(agencyId, search, guideId);
 
     const [total, byStatusRaw] = await Promise.all([
@@ -105,6 +121,7 @@ export class PartnerService {
   }
 
   async getGuides(agencyId: string) {
+    if (!agencyId) return [];
     return await this.prisma.guide.findMany({
       where: { agencyId, active: true },
       select: {

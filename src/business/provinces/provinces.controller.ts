@@ -26,6 +26,11 @@ export class ProvincesController {
     return this.provinces.findAll();
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.provinces.findById(id);
+  }
+
   @Post()
   create(@Body() dto: CreateProvinceDto) {
     return this.provinces.create(dto.name);

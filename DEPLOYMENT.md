@@ -3,7 +3,7 @@
 Despliegue del proyecto **paqueteria** (cliente React + servidor NestJS) usando únicamente planes gratuitos:
 
 - **Frontend:** paqueteria-client (React + Vite) → Vercel
-- **Backend:** paqueteria-server (NestJS, serverless) → Vercel
+- **Backend:** paqueteria-server (NestJS) → Vercel (zero-config)
 - **Base de datos:** PostgreSQL → Neon (free tier)
 - **IA (extracción de Excel):** Google Gemini → API Key gratuita
 
@@ -61,7 +61,7 @@ node prisma/seed.mjs
 ## 4. Desplegar el backend en Vercel
 
 1. Vercel → **Add New Project** → importa `osmelmr/paqueteria-server`.
-2. Framework Preset: **Other** (la config está en `vercel.json`).
+2. Framework Preset: **NestJS** (soporte zero-config de Vercel; no hace falta `vercel.json`).
 3. En **Environment Variables** agrega:
 
    | Variable | Valor |
@@ -75,8 +75,8 @@ node prisma/seed.mjs
 4. Deploy. La URL quedará parecida a `https://paqueteria-server.vercel.app`.
 
 > Notas:
-> - `vercel.json` ya configura el handler serverless (`dist/src/serverless.js`) con `maxDuration: 60`.
-> - El build ejecuta `postinstall` → `prisma generate` automáticamente.
+> - Vercel detecta NestJS automáticamente (zero-config) y ejecuta `dist/src/main`, que escucha en `process.env.PORT` (runtime de Node de Vercel).
+> - El build (`vercel-build`) ejecuta `prisma generate && prisma migrate deploy && nest build`; `postinstall` además ejecuta `prisma generate`.
 > - La app responde bajo `/api/v1` (ej: `https://paqueteria-server.vercel.app/api/v1/statuses`).
 
 ## 5. Desplegar el frontend en Vercel

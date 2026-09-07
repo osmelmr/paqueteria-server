@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const MODELS = [
@@ -43,7 +43,11 @@ export class AiClientService {
       }
     }
 
-    throw lastError;
+    throw new BadGatewayException(
+      `No se pudo extraer la información con la IA: ${
+        lastError instanceof Error ? lastError.message : String(lastError)
+      }`,
+    );
   }
 
   private buildPrompt(excelText: string): string {

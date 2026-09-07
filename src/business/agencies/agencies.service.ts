@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
@@ -31,6 +35,12 @@ export class AgenciesService {
 
   async delete(id: string) {
     await this.findById(id);
+    const guides = await this.prisma.guide.count({ where: { agencyId: id } });
+    if (guides > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar una agencia con guías asociadas',
+      );
+    }
     await this.prisma.agency.delete({ where: { id } });
   }
 }

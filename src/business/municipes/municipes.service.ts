@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { normalizeText } from '../../common/utils/normalize-text.js';
 
@@ -44,6 +48,12 @@ export class MunicipesService {
 
   async delete(id: string) {
     await this.findById(id);
+    const packages = await this.prisma.package.count({ where: { municipeId: id } });
+    if (packages > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar un municipio con paquetes asociados',
+      );
+    }
     await this.prisma.municipe.delete({ where: { id } });
   }
 }

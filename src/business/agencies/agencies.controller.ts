@@ -27,6 +27,11 @@ export class AgenciesController {
     return this.agencies.findAll();
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.agencies.findById(id);
+  }
+
   @Post()
   @Roles('ADMIN', 'OWNER', 'AGENT')
   create(@Body() dto: CreateAgencyDto) {

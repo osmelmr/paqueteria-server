@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
@@ -68,6 +72,12 @@ export class RecipientsService {
 
   async delete(id: string) {
     await this.findById(id);
+    const packages = await this.prisma.package.count({ where: { recipientId: id } });
+    if (packages > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar un destinatario con paquetes asociados',
+      );
+    }
     await this.prisma.recipient.delete({ where: { id } });
   }
 

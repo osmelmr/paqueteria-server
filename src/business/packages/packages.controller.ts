@@ -93,7 +93,7 @@ export class PackagesController {
     });
   }
 
-  @Roles('ADMIN', 'OWNER')
+  @Roles('ADMIN', 'OWNER', 'AGENT')
   @Post('bulk-create')
   bulkCreate(
     @Body() body: { hbls: string[]; statusId: string; locationId: string },
@@ -118,7 +118,7 @@ export class PackagesController {
     return this.packages.findById(id);
   }
 
-  @Roles('ADMIN', 'OWNER', 'WORKER', 'STOREKEEPER')
+  @Roles('ADMIN', 'OWNER', 'AGENT', 'WORKER', 'STOREKEEPER')
   @Get(':id/history')
   history(@Param('id') id: string) {
     return this.packageHistory.history(id);
@@ -148,7 +148,7 @@ export class PackagesController {
     return this.packages.create(dto, userId);
   }
 
-  @Roles('ADMIN', 'OWNER')
+  @Roles('ADMIN', 'OWNER', 'AGENT')
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -159,7 +159,7 @@ export class PackagesController {
     return this.packages.update(id, dto, userId);
   }
 
-  @Roles('ADMIN', 'OWNER')
+  @Roles('ADMIN', 'OWNER', 'AGENT', 'WORKER', 'STOREKEEPER')
   @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,

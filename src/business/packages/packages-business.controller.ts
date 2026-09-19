@@ -35,7 +35,7 @@ export class BusinessController {
     return this.businessService.processBulkAiEntities(entities, userId);
   }
 
-  @Roles('ADMIN', 'OWNER')
+  @Roles('ADMIN', 'OWNER', 'AGENT')
   @Post('update-status-bulk')
   async updateStatusBulk(
     @Body()
@@ -57,7 +57,7 @@ export class BusinessController {
     );
   }
 
-  @Roles('ADMIN', 'OWNER')
+  @Roles('ADMIN', 'OWNER', 'AGENT')
   @Patch('packages/:id/resolve-alert')
   async resolveAlert(
     @Param('id') id: string,

@@ -408,6 +408,10 @@ export class GenerateService {
       const provinceB = b.province?.name || 'Sin provincia';
       const cmp = provinceA.localeCompare(provinceB);
       if (cmp !== 0) return cmp;
+      const munA = a.municipe?.name || 'Sin municipio';
+      const munB = b.municipe?.name || 'Sin municipio';
+      const munCmp = munA.localeCompare(munB);
+      if (munCmp !== 0) return munCmp;
       const nameA = a.recipient?.fullName || '';
       const nameB = b.recipient?.fullName || '';
       return nameA.localeCompare(nameB);

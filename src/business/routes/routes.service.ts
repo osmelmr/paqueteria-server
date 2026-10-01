@@ -195,7 +195,8 @@ export class RoutesService {
           const packagesInOtherRoutes = await this.prisma.package.findMany({
             where: {
               id: { in: packageIds },
-              routeId: { not: null, not: id },
+              routeId: { not: null },
+              NOT: { routeId: id },
             },
             select: {
               id: true,

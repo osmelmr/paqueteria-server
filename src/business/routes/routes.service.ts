@@ -82,6 +82,35 @@ export class RoutesService {
 
     const packageIds = [...new Set(hblRecords.map((h) => h.packageId))];
 
+    // Validar que ningún paquete ya esté asociado a otra ruta
+    if (packageIds.length > 0) {
+      const packagesInOtherRoutes = await this.prisma.package.findMany({
+        where: {
+          id: { in: packageIds },
+          routeId: { not: null },
+        },
+        select: {
+          id: true,
+          routeId: true,
+          hbls: { select: { hblCode: true } },
+        },
+      });
+      if (packagesInOtherRoutes.length > 0) {
+        const hbls = packagesInOtherRoutes.flatMap((p) =>
+          p.hbls.map((h) => h.hblCode),
+        );
+        throw new BadRequestException({
+          message: `Los siguientes HBL ya están asociados a otra ruta: ${hbls.join(', ')}`,
+          hbls,
+          routeIds: [
+            ...new Set(
+              packagesInOtherRoutes.map((p) => p.routeId).filter(Boolean),
+            ),
+          ],
+        });
+      }
+    }
+
     const createData: any = {
       name: data.name.toUpperCase().trim(),
       description: data.description,
@@ -160,6 +189,36 @@ export class RoutesService {
         });
         const matchedHbls = new Set(hblRecords.map((h) => h.hblCode));
         const packageIds = [...new Set(hblRecords.map((h) => h.packageId))];
+
+        // Validar que ningún paquete nuevo esté asociado a otra ruta
+        if (packageIds.length > 0) {
+          const packagesInOtherRoutes = await this.prisma.package.findMany({
+            where: {
+              id: { in: packageIds },
+              routeId: { not: null, not: id },
+            },
+            select: {
+              id: true,
+              routeId: true,
+              hbls: { select: { hblCode: true } },
+            },
+          });
+          if (packagesInOtherRoutes.length > 0) {
+            const hbls = packagesInOtherRoutes.flatMap((p) =>
+              p.hbls.map((h) => h.hblCode),
+            );
+            throw new BadRequestException({
+              message: `Los siguientes HBL ya están asociados a otra ruta: ${hbls.join(', ')}`,
+              hbls,
+              routeIds: [
+                ...new Set(
+                  packagesInOtherRoutes.map((p) => p.routeId).filter(Boolean),
+                ),
+              ],
+            });
+          }
+        }
+
         updateData.packages = {
           set: packageIds.map((pid) => ({ id: pid })),
         };

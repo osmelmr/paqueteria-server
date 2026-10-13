@@ -1,5 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { normalizeHbl } from '../common/utils/normalize-hbls.js';
 import ExcelJS from 'exceljs';
 import * as QRCode from 'qrcode';
 import { readFileSync } from 'node:fs';
@@ -542,6 +547,274 @@ export class GenerateService {
       .replace(/[^a-zA-Z0-9_-]+/g, '-')
       .replace(/^-+|-+$/g, '');
     const filename = `${safeName || 'ruta'}.xlsx`;
+    return { buffer: Buffer.from(buffer), filename };
+  }
+
+  /**
+   * Genera un Excel con el mismo formato que el de una ruta, pero a partir
+   * de una lista arbitraria de HBLs (no de una ruta).
+   */
+  async generatePackagesExcel(
+    hbls: string[],
+    deliveredBy?: string,
+  ): Promise<{ buffer: Buffer; filename: string }> {
+    // ============================================================
+    // 1. Normalizar y deduplicar HBLs
+    // ============================================================
+    const unique: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of hbls) {
+      if (!raw) continue;
+      const normalized = normalizeHbl(String(raw));
+      if (!normalized || seen.has(normalized)) continue;
+      seen.add(normalized);
+      unique.push(normalized);
+    }
+
+    if (unique.length === 0) {
+      throw new BadRequestException('Debe indicar al menos un HBL');
+    }
+
+    // ============================================================
+    // 2. Buscar los paquetes correspondientes (una sola consulta)
+    // ============================================================
+    const matches = await this.prisma.packageHbl.findMany({
+      where: { hblCode: { in: unique } },
+      include: {
+        package: {
+          include: {
+            recipient: true,
+            province: true,
+            municipe: true,
+            hbls: true,
+            guide: {
+              include: {
+                agency: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const matchedCodes = new Set<string>();
+    const packageMap = new Map<string, (typeof matches)[number]['package']>();
+
+    for (const match of matches) {
+      matchedCodes.add(match.hblCode);
+      if (!packageMap.has(match.package.id)) {
+        packageMap.set(match.package.id, match.package);
+      }
+    }
+
+    const notFoundHbls = unique.filter((code) => !matchedCodes.has(code));
+    const packages = Array.from(packageMap.values());
+
+    // ============================================================
+    // 3. Construir el workbook (mismo formato que el Excel de ruta)
+    // ============================================================
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Paquetes');
+
+    worksheet.getColumn(1).width = 25;
+    worksheet.getColumn(2).width = 15;
+    worksheet.getColumn(3).width = 12;
+    worksheet.getColumn(4).width = 15;
+    worksheet.getColumn(5).width = 15;
+    worksheet.getColumn(6).width = 30;
+    worksheet.getColumn(7).width = 18;
+    worksheet.getColumn(8).width = 20;
+    worksheet.getColumn(9).width = 15;
+
+    // Fila 1: Título MIPYME
+    worksheet.mergeCells('A1:E1');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = 'MIPYME TRANSPORTACIONES RODRIGEZ-RIZO';
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    titleCell.font = { bold: true, size: 16 };
+
+    // Filas 2-4: Información del informe
+    const cellA2 = worksheet.getCell('A2');
+    cellA2.value = 'ENTREGADO POR:';
+    cellA2.font = { bold: true };
+    worksheet.getCell('B2').value = deliveredBy || 'No especificado';
+
+    const cellA3 = worksheet.getCell('A3');
+    cellA3.value = 'TRANSPORTADO POR:';
+    cellA3.font = { bold: true };
+    worksheet.getCell('B3').value = '';
+
+    const cellA4 = worksheet.getCell('A4');
+    cellA4.value = 'RECIBIDO POR:';
+    cellA4.font = { bold: true };
+    worksheet.getCell('B4').value = '';
+
+    // Fila 6: Encabezados de la tabla
+    const headerRow = worksheet.getRow(6);
+    headerRow.getCell(1).value = 'Nombre y apellidos';
+    headerRow.getCell(2).value = 'HBL';
+    headerRow.getCell(3).value = 'Peso';
+    headerRow.getCell(4).value = 'C.I.';
+    headerRow.getCell(5).value = 'Móvil';
+    headerRow.getCell(6).value = 'Dirección';
+    headerRow.getCell(7).value = 'Provincia';
+    headerRow.getCell(8).value = 'Municipio';
+    headerRow.getCell(9).value = 'Firma';
+
+    for (let col = 1; col <= 9; col++) {
+      const cell = headerRow.getCell(col);
+      cell.font = { bold: true, size: 11 };
+      cell.alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+        wrapText: true,
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' },
+      };
+    }
+
+    // Datos de paquetes
+    let currentRow = 7;
+    let totalWeight = 0;
+
+    const sortedPackages = [...packages].sort((a, b) => {
+      const provinceA = a.province?.name || 'Sin provincia';
+      const provinceB = b.province?.name || 'Sin provincia';
+      const cmp = provinceA.localeCompare(provinceB);
+      if (cmp !== 0) return cmp;
+      const munA = a.municipe?.name || 'Sin municipio';
+      const munB = b.municipe?.name || 'Sin municipio';
+      const munCmp = munA.localeCompare(munB);
+      if (munCmp !== 0) return munCmp;
+      const nameA = a.recipient?.fullName || '';
+      const nameB = b.recipient?.fullName || '';
+      return nameA.localeCompare(nameB);
+    });
+
+    for (const pkg of sortedPackages) {
+      const row = worksheet.getRow(currentRow);
+      row.height = 30;
+
+      const weight = pkg.weight ? Number(pkg.weight) : 0;
+      totalWeight += weight;
+
+      row.getCell(1).value = pkg.recipient?.fullName || 'Sin destinatario';
+      row.getCell(2).value =
+        pkg.hbls.length > 0 ? pkg.hbls[0].hblCode : 'Sin HBL';
+      row.getCell(3).value = weight;
+      row.getCell(4).value = pkg.recipient?.idCard || 'Sin CI';
+      row.getCell(5).value = pkg.recipient?.phone || 'Sin móvil';
+      row.getCell(6).value = pkg.address || 'Sin dirección';
+      row.getCell(7).value = pkg.province?.name || 'Sin provincia';
+      row.getCell(8).value = pkg.municipe?.name || 'Sin municipio';
+      row.getCell(9).value = '';
+
+      for (let col = 1; col <= 9; col++) {
+        const cell = row.getCell(col);
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.font = { color: { argb: 'FF008000' }, size: 10 };
+      }
+
+      row.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+      row.getCell(6).alignment = { horizontal: 'left', vertical: 'middle' };
+
+      currentRow++;
+    }
+
+    // HBLs consultados que no coinciden con ningún paquete
+    for (const hbl of notFoundHbls) {
+      const row = worksheet.getRow(currentRow);
+      for (let col = 1; col <= 9; col++) {
+        const cell = row.getCell(col);
+        if (col !== 2) cell.value = '';
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        cell.alignment =
+          col === 2
+            ? { horizontal: 'center', vertical: 'middle' }
+            : { horizontal: 'left', vertical: 'middle' };
+        cell.font = { color: { argb: 'FF008000' }, size: 10 };
+      }
+      row.getCell(2).value = hbl;
+      currentRow++;
+    }
+
+    // Fila de total
+    if (packages.length > 0) {
+      const totalRow = worksheet.getRow(currentRow);
+
+      totalRow.getCell(1).value = 'PESO TOTAL:';
+      totalRow.getCell(1).font = { bold: true, size: 11 };
+      totalRow.getCell(1).alignment = {
+        horizontal: 'right',
+        vertical: 'middle',
+      };
+
+      totalRow.getCell(3).value = totalWeight;
+      totalRow.getCell(3).font = { bold: true, size: 11 };
+      totalRow.getCell(3).alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+      };
+
+      for (let col = 1; col <= 9; col++) {
+        const cell = totalRow.getCell(col);
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        if (col !== 1 && col !== 3) {
+          cell.value = '';
+        }
+      }
+    }
+
+    // Información adicional al pie
+    const infoRow = worksheet.getRow(currentRow + 2);
+    infoRow.getCell(1).value = `Total de paquetes: ${packages.length}`;
+    infoRow.getCell(1).font = { italic: true, size: 9 };
+    infoRow.getCell(1).alignment = { horizontal: 'left' };
+
+    if (notFoundHbls.length > 0) {
+      const notFoundRow = worksheet.getRow(currentRow + 3);
+      notFoundRow.getCell(1).value = `HBLs no encontrados: ${notFoundHbls.length}`;
+      notFoundRow.getCell(1).font = { italic: true, size: 9 };
+      notFoundRow.getCell(1).alignment = { horizontal: 'left' };
+    }
+
+    const dateRow = worksheet.getRow(currentRow + 4);
+    dateRow.getCell(1).value =
+      `Generado: ${new Date().toLocaleString('es-ES')}`;
+    dateRow.getCell(1).font = { italic: true, size: 9 };
+    dateRow.getCell(1).alignment = { horizontal: 'left' };
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[:T]/g, '-')
+      .slice(0, 19);
+    const filename = `paquetes_${timestamp}.xlsx`;
     return { buffer: Buffer.from(buffer), filename };
   }
 }

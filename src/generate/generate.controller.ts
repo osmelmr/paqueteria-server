@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
+  Post,
   Req,
   Res,
   HttpStatus,
@@ -69,6 +71,44 @@ export class GenerateController {
       if (error.status === 404) {
         res.status(HttpStatus.NOT_FOUND).json({ message: error.message });
       } else {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          message: 'Error al generar el Excel',
+        });
+      }
+    }
+  }
+
+  @Post('excel-packages')
+  async generatePackagesExcel(
+    @Body() body: { hbls?: string[] },
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    try {
+      const { buffer, filename } =
+        await this.generateService.generatePackagesExcel(
+          Array.isArray(body?.hbls) ? body.hbls : [],
+          req.user?.fullName,
+        );
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`,
+      );
+      res.setHeader('Content-Length', buffer.length);
+
+      res.status(HttpStatus.OK).send(buffer);
+    } catch (error) {
+      if (error.status === 400) {
+        res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+      } else if (error.status === 404) {
+        res.status(HttpStatus.NOT_FOUND).json({ message: error.message });
+      } else {
+        console.error('Error al generar el Excel de paquetes:', error);
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           message: 'Error al generar el Excel',
         });

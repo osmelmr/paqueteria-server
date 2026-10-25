@@ -2,14 +2,25 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service.js';
 import { normalizeHbl } from '../../../common/utils/normalize-hbls.js';
 import { Prisma } from '../../../../generated/prisma/client.js';
+import { GuideType } from '../../../../generated/prisma/enums.js';
 import { BulkUpsertPackageDto } from '../dto/bulk-upsert.dto.js';
 import { BusinessService } from './business.service.js';
 
 export interface BulkUpsertResult {
-  created: Array<{ hbls: string[]; packageId: string }>;
-  updated: Array<{ hbls: string[]; packageId: string }>;
-  failed: Array<{ hbls: string[]; error: string }>;
+  created: Array<{ hblCodes: string[]; packageId: string }>;
+  updated: Array<{ hblCodes: string[]; packageId: string }>;
+  failed: Array<{ hblCodes: string[]; error: string }>;
   total: number;
+}
+
+/** Metadatos del lote (solo aplican al crear paquetes nuevos) */
+export interface BulkUpsertMeta {
+  statusId: string;
+  locationId?: string;
+  agencyId?: string;
+  guideId?: string;
+  guide?: string;
+  guideType?: GuideType;
 }
 
 /** Data parcial del paquete: el status es obligatorio solo al crear */
@@ -17,12 +28,11 @@ type PackageDataInput = Omit<Prisma.PackageUncheckedCreateInput, 'statusId'> & {
   statusId?: string;
 };
 
-type BulkDefaults = { statusId: string; locationId: string };
-
 /**
- * Crea en lote los paquetes que NO existen y ACTUALIZA los que SI existen
- * (identificados por su HBL). Solo se sobrescriben los campos que vienen
- * con valor; los vacios conservan lo que ya tenia el paquete.
+ * Importa un lote creando los paquetes que NO existen y ACTUALIZANDO los
+ * que SI existen (identificados por su HBL). Solo se sobrescriben los
+ * campos de la fila que vienen con valor; los vacios conservan lo que ya
+ * tenia el paquete.
  */
 @Injectable()
 export class PackagesUpsertService {
@@ -33,7 +43,7 @@ export class PackagesUpsertService {
 
   async bulkUpsert(
     packages: BulkUpsertPackageDto[],
-    defaults: BulkDefaults,
+    meta: BulkUpsertMeta,
     userId: string,
   ): Promise<BulkUpsertResult> {
     const result: BulkUpsertResult = {
@@ -47,16 +57,20 @@ export class PackagesUpsertService {
       throw new BadRequestException('Debe enviar al menos un paquete');
     }
 
-    // Las referencias por defecto se validan una sola vez (falla todo el lote)
-    await this.validateReferences(defaults.statusId, defaults.locationId);
+    // Metadatos del lote: se validan/resuelven una sola vez para todo el lote
+    await this.validateReferences(meta.statusId, meta.locationId);
+    if (this.hasValue(meta.agencyId)) {
+      await this.validateAgency(meta.agencyId!);
+    }
+    const guideId = await this.resolveGuide(meta);
 
     for (const item of packages) {
-      const hbls = this.normalizeHbls(item.hbls);
+      const hblCodes = this.normalizeHbls(item.hblCodes);
       result.total += 1;
 
-      if (hbls.length === 0) {
+      if (hblCodes.length === 0) {
         result.failed.push({
-          hbls: item.hbls ?? [],
+          hblCodes: item.hblCodes ?? [],
           error: 'El paquete no tiene HBL y no puede guardarse',
         });
         continue;
@@ -64,7 +78,7 @@ export class PackagesUpsertService {
 
       try {
         const existing = await this.prisma.packageHbl.findMany({
-          where: { hblCode: { in: hbls } },
+          where: { hblCode: { in: hblCodes } },
           select: { hblCode: true, packageId: true },
         });
 
@@ -72,7 +86,7 @@ export class PackagesUpsertService {
 
         if (packageIds.length > 1) {
           throw new BadRequestException(
-            `Los HBL ${hbls.join(', ')} pertenecen a paquetes distintos en el sistema`,
+            `Los HBL ${hblCodes.join(', ')} pertenecen a paquetes distintos en el sistema`,
           );
         }
 
@@ -80,31 +94,34 @@ export class PackagesUpsertService {
           const packageId = await this.updatePackage(
             packageIds[0],
             item,
-            hbls,
+            hblCodes,
             existing.map((e) => e.hblCode),
             userId,
           );
-          result.updated.push({ hbls, packageId });
+          result.updated.push({ hblCodes, packageId });
         } else {
           const packageId = await this.createPackage(
-            hbls,
+            hblCodes,
             item,
-            defaults,
+            { ...meta, guideId },
             userId,
           );
-          result.created.push({ hbls, packageId });
+          result.created.push({ hblCodes, packageId });
         }
       } catch (error) {
-        result.failed.push({ hbls, error: (error as Error).message });
+        result.failed.push({
+          hblCodes,
+          error: (error as Error).message,
+        });
       }
     }
 
     return result;
   }
 
-  private normalizeHbls(hbls?: string[]): string[] {
-    if (!Array.isArray(hbls)) return [];
-    const normalized = hbls
+  private normalizeHbls(hblCodes?: string[]): string[] {
+    if (!Array.isArray(hblCodes)) return [];
+    const normalized = hblCodes
       .map((hbl) => normalizeHbl(String(hbl ?? '')))
       .filter((hbl) => hbl.length > 0);
     return [...new Set(normalized)];
@@ -135,24 +152,77 @@ export class PackagesUpsertService {
     }
   }
 
+  private async validateAgency(agencyId: string) {
+    const agency = await this.prisma.agency.findUnique({
+      where: { id: agencyId },
+    });
+    if (!agency) throw new BadRequestException(`Agencia inválida: ${agencyId}`);
+  }
+
   /**
-   * Construye el data del paquete SOLO con los campos que vienen con valor.
-   * Resuelve/crea provincia, municipio y destinatario igual que el resto
-   * de la aplicacion.
+   * Resuelve la guia del lote igual que la importacion normal de Excel:
+   * si trae id la valida, si trae nombre busca y si no existe la crea.
+   */
+  private async resolveGuide(
+    meta: BulkUpsertMeta,
+  ): Promise<string | undefined> {
+    if (this.hasValue(meta.guideId)) {
+      const guide = await this.prisma.guide.findUnique({
+        where: { id: meta.guideId },
+      });
+      if (!guide)
+        throw new BadRequestException(`Guía inválida: ${meta.guideId}`);
+      return guide.id;
+    }
+
+    const name = this.hasValue(meta.guide) ? meta.guide!.trim() : '';
+    if (!name) return undefined;
+
+    const existing = await this.prisma.guide.findUnique({
+      where: { name },
+    });
+    if (existing) return existing.id;
+
+    if (!this.hasValue(meta.agencyId)) {
+      throw new BadRequestException(
+        'Debe indicar una agencia para crear una guía nueva',
+      );
+    }
+    if (!meta.guideType) {
+      throw new BadRequestException(
+        'Debe indicar el tipo de guía para crear una guía nueva',
+      );
+    }
+
+    try {
+      const created = await this.prisma.guide.create({
+        data: {
+          name,
+          agencyId: meta.agencyId!,
+          type: meta.guideType,
+        },
+      });
+      return created.id;
+    } catch (err) {
+      if ((err as { code?: string }).code === 'P2002') {
+        const duplicate = await this.prisma.guide.findUnique({
+          where: { name },
+        });
+        if (duplicate) return duplicate.id;
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Construye el data del paquete SOLO con los campos de la fila que vienen
+   * con valor. Resuelve/crea provincia, municipio y destinatario igual que
+   * el resto de la aplicacion.
    */
   private async buildPackageData(
     item: BulkUpsertPackageDto,
   ): Promise<PackageDataInput> {
     const data: PackageDataInput = {};
-
-    if (this.hasValue(item.guideId)) {
-      const guide = await this.prisma.guide.findUnique({
-        where: { id: item.guideId },
-      });
-      if (!guide)
-        throw new BadRequestException(`Guía inválida: ${item.guideId}`);
-      data.guideId = guide.id;
-    }
 
     if (this.hasValue(item.provinceId)) {
       const province = await this.prisma.province.findUnique({
@@ -232,17 +302,23 @@ export class PackagesUpsertService {
   }
 
   private async createPackage(
-    hbls: string[],
+    hblCodes: string[],
     item: BulkUpsertPackageDto,
-    defaults: BulkDefaults,
+    meta: BulkUpsertMeta & { guideId?: string },
     userId: string,
   ): Promise<string> {
     const statusId = this.hasValue(item.statusId)
       ? item.statusId!
-      : defaults.statusId;
+      : meta.statusId;
     const locationId = this.hasValue(item.locationId)
       ? item.locationId!
-      : defaults.locationId;
+      : meta.locationId;
+
+    if (!locationId) {
+      throw new BadRequestException(
+        'Debe indicar una ubicación para crear el paquete',
+      );
+    }
 
     await this.validateReferences(statusId, locationId);
     const partial = await this.buildPackageData(item);
@@ -250,6 +326,7 @@ export class PackagesUpsertService {
       ...partial,
       statusId,
       locationId,
+      ...(meta.guideId ? { guideId: meta.guideId } : {}),
     };
 
     return this.prisma.$transaction(async (tx) => {
@@ -264,9 +341,9 @@ export class PackagesUpsertService {
         },
       });
 
-      if (hbls.length > 0) {
+      if (hblCodes.length > 0) {
         await tx.packageHbl.createMany({
-          data: hbls.map((hblCode) => ({
+          data: hblCodes.map((hblCode) => ({
             packageId: created.id,
             hblCode,
           })),
@@ -280,8 +357,8 @@ export class PackagesUpsertService {
   private async updatePackage(
     packageId: string,
     item: BulkUpsertPackageDto,
-    hbls: string[],
-    alreadyOwnedHbls: string[],
+    hblCodes: string[],
+    alreadyOwnedHblCodes: string[],
     userId: string,
   ): Promise<string> {
     const existing = await this.prisma.package.findUnique({
@@ -295,8 +372,8 @@ export class PackagesUpsertService {
 
     const packageData = await this.buildPackageData(item);
 
-    // El estado/ubicacion por defecto del lote NO se aplica al actualizar,
-    // solo si vienen indicados explicitamente en el item.
+    // Los metadatos del lote (estado/ubicacion/guia) NO se aplican al
+    // actualizar, solo si vienen indicados explicitamente en la fila.
     if (this.hasValue(item.statusId)) {
       await this.validateReferences(item.statusId);
       packageData.statusId = item.statusId!;
@@ -314,7 +391,9 @@ export class PackagesUpsertService {
       (packageData.locationId !== undefined &&
         packageData.locationId !== existing.locationId);
 
-    const newHbls = hbls.filter((hbl) => !alreadyOwnedHbls.includes(hbl));
+    const newHblCodes = hblCodes.filter(
+      (hbl) => !alreadyOwnedHblCodes.includes(hbl),
+    );
 
     return this.prisma.$transaction(async (tx) => {
       if (Object.keys(packageData).length > 0) {
@@ -324,9 +403,9 @@ export class PackagesUpsertService {
         });
       }
 
-      if (newHbls.length > 0) {
+      if (newHblCodes.length > 0) {
         const conflicts = await tx.packageHbl.findMany({
-          where: { hblCode: { in: newHbls } },
+          where: { hblCode: { in: newHblCodes } },
           select: { hblCode: true },
         });
         if (conflicts.length > 0) {
@@ -337,7 +416,7 @@ export class PackagesUpsertService {
           );
         }
         await tx.packageHbl.createMany({
-          data: newHbls.map((hblCode) => ({ packageId, hblCode })),
+          data: newHblCodes.map((hblCode) => ({ packageId, hblCode })),
         });
       }
 

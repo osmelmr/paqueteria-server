@@ -15,19 +15,26 @@ interface StoredHbl {
   packageId: string;
 }
 
+const DEFAULT_META = {
+  statusId: 'status-1',
+  locationId: 'location-1',
+  agencyId: 'agency-1',
+};
+
 function createHarness() {
   const state = {
     packages: [] as StoredPackage[],
     hbls: [] as StoredHbl[],
     history: [] as Row[],
     recipients: [] as Row[],
+    guides: [
+      { id: 'guide-1', name: 'GUIA-EXISTENTE', agencyId: 'agency-1' },
+    ] as Row[],
     updates: [] as Row[],
     counter: 0,
   };
 
-  const valid = (ids: string[]) => ids;
-  const statusIds = valid(['status-1', 'status-2']);
-  const locationIds = valid(['location-1']);
+  const statusIds = ['status-1', 'status-2'];
 
   const refModel = (ids: string[]) => ({
     findUnique: ({ where }: { where: { id: string } }) =>
@@ -46,10 +53,26 @@ function createHarness() {
 
   const prisma = {
     status: refModel(statusIds),
-    location: refModel(locationIds),
-    guide: refModel(['guide-1']),
+    location: refModel(['location-1']),
+    agency: refModel(['agency-1']),
     province: refModel(['province-1']),
     municipe: refModel(['municipe-1']),
+    guide: {
+      findUnique: ({ where }: { where: { id?: string; name?: string } }) => {
+        if (where.id) {
+          return state.guides.find((g) => g.id === where.id) ?? null;
+        }
+        if (where.name) {
+          return state.guides.find((g) => g.name === where.name) ?? null;
+        }
+        return null;
+      },
+      create: ({ data }: { data: Row }) => {
+        const guide = { id: `guide-${state.guides.length + 1}`, ...data };
+        state.guides.push(guide);
+        return guide;
+      },
+    },
     recipient: {
       findFirst: ({ where }: { where: { idCard: { contains: string } } }) =>
         state.recipients.find((r) =>
@@ -130,8 +153,8 @@ describe('PackagesUpsertService.bulkUpsert', () => {
     const { service, state } = createHarness();
 
     const result = await service.bulkUpsert(
-      [{ hbls: ['HBL-001'] }, { hbls: ['HBL-002'] }],
-      { statusId: 'status-1', locationId: 'location-1' },
+      [{ hblCodes: ['HBL-001'] }, { hblCodes: ['HBL-002'] }],
+      DEFAULT_META,
       'user-1',
     );
 
@@ -163,19 +186,19 @@ describe('PackagesUpsertService.bulkUpsert', () => {
     const result = await service.bulkUpsert(
       [
         {
-          hbls: ['HBL-001', 'HBL-009'],
+          hblCodes: ['HBL-001', 'HBL-009'],
           address: 'Direccion nueva',
           content: '',
           weight: 0,
         },
       ],
-      { statusId: 'status-1', locationId: 'location-1' },
+      DEFAULT_META,
       'user-1',
     );
 
     expect(result.created).toHaveLength(0);
     expect(result.updated).toEqual([
-      { hbls: ['HBL-001', 'HBL-009'], packageId: 'pkg-existente' },
+      { hblCodes: ['HBL-001', 'HBL-009'], packageId: 'pkg-existente' },
     ]);
     expect(result.failed).toHaveLength(0);
 
@@ -183,16 +206,17 @@ describe('PackagesUpsertService.bulkUpsert', () => {
     expect(pkg.address).toBe('Direccion nueva');
     expect(pkg.content).toBe('Contenido viejo');
     expect(pkg).not.toHaveProperty('weight');
-    // el estado/ubicacion por defecto del lote no pisa al paquete existente
+    // los metadatos del lote no pisan al paquete existente
     expect(state.updates[0]).not.toHaveProperty('statusId');
     expect(state.updates[0]).not.toHaveProperty('locationId');
+    expect(state.updates[0]).not.toHaveProperty('guideId');
     // sin cambio de estado no se registra historial
     expect(state.history).toHaveLength(0);
     // el HBL nuevo queda asociado al mismo paquete
     expect(state.hbls.map((h) => h.hblCode)).toEqual(['HBL-001', 'HBL-009']);
   });
 
-  it('registra historial cuando el item trae un estado nuevo', async () => {
+  it('registra historial cuando la fila trae un estado nuevo', async () => {
     const { service, state } = createHarness();
 
     state.packages.push({
@@ -203,8 +227,8 @@ describe('PackagesUpsertService.bulkUpsert', () => {
     state.hbls.push({ hblCode: 'HBL-001', packageId: 'pkg-existente' });
 
     const result = await service.bulkUpsert(
-      [{ hbls: ['HBL-001'], statusId: 'status-2' }],
-      { statusId: 'status-1', locationId: 'location-1' },
+      [{ hblCodes: ['HBL-001'], statusId: 'status-2' }],
+      DEFAULT_META,
       'user-1',
     );
 
@@ -215,6 +239,37 @@ describe('PackagesUpsertService.bulkUpsert', () => {
       statusId: 'status-2',
       userId: 'user-1',
     });
+  });
+
+  it('asocia la guia del lote a los paquetes nuevos', async () => {
+    const { service, state } = createHarness();
+
+    const result = await service.bulkUpsert(
+      [{ hblCodes: ['HBL-001'] }],
+      { ...DEFAULT_META, guideId: 'guide-1' },
+      'user-1',
+    );
+
+    expect(result.created).toHaveLength(1);
+    expect(state.packages[0].guideId).toBe('guide-1');
+  });
+
+  it('crea la guia nueva si el nombre no existe todavía', async () => {
+    const { service, state } = createHarness();
+
+    const result = await service.bulkUpsert(
+      [{ hblCodes: ['HBL-001'] }],
+      {
+        ...DEFAULT_META,
+        guide: 'LOTE-009',
+        guideType: 'AEREA',
+      },
+      'user-1',
+    );
+
+    expect(result.created).toHaveLength(1);
+    expect(state.guides).toHaveLength(2);
+    expect(state.packages[0].guideId).toBe('guide-2');
   });
 
   it('falla cuando los HBLs pertenecen a paquetes distintos', async () => {
@@ -230,8 +285,8 @@ describe('PackagesUpsertService.bulkUpsert', () => {
     );
 
     const result = await service.bulkUpsert(
-      [{ hbls: ['HBL-001', 'HBL-002'] }],
-      { statusId: 'status-1', locationId: 'location-1' },
+      [{ hblCodes: ['HBL-001', 'HBL-002'] }],
+      DEFAULT_META,
       'user-1',
     );
 
@@ -246,12 +301,27 @@ describe('PackagesUpsertService.bulkUpsert', () => {
     const { service } = createHarness();
 
     const result = await service.bulkUpsert(
-      [{ hbls: ['   '] }],
-      { statusId: 'status-1', locationId: 'location-1' },
+      [{ hblCodes: ['   '] }],
+      DEFAULT_META,
       'user-1',
     );
 
     expect(result.failed).toHaveLength(1);
     expect(result.failed[0].error).toContain('no tiene HBL');
+  });
+
+  it('falla al crear si el lote no trae ubicacion', async () => {
+    const { service, state } = createHarness();
+
+    const result = await service.bulkUpsert(
+      [{ hblCodes: ['HBL-001'] }],
+      { statusId: 'status-1', agencyId: 'agency-1' },
+      'user-1',
+    );
+
+    expect(result.created).toHaveLength(0);
+    expect(result.failed).toHaveLength(1);
+    expect(result.failed[0].error).toContain('ubicación');
+    expect(state.packages).toHaveLength(0);
   });
 });

@@ -112,19 +112,16 @@ export class PackagesController {
   }
 
   /**
-   * Crea los paquetes que no existen y actualiza los que ya existen (por HBL).
-   * Solo se sobrescriben los campos que vienen con valor.
-   * Roles: los mismos que ven el enlace en el menú lateral.
+   * Importa un lote: crea los paquetes que no existen y actualiza los que
+   * ya existen (identificados por su HBL). Solo se sobrescriben los campos
+   * de la fila que vienen con valor.
+   * Los metadatos (estado/ubicacion/agencia/guia) solo aplican al crear.
    */
   @Roles('ADMIN', 'OWNER', 'AGENT', 'STOREKEEPER')
   @Post('bulk-upsert')
   bulkUpsert(@Body() dto: BulkUpsertDto, @Req() req: Request) {
     const userId = req.user!.id;
-    return this.packagesUpsert.bulkUpsert(
-      dto.packages,
-      { statusId: dto.statusId, locationId: dto.locationId },
-      userId,
-    );
+    return this.packagesUpsert.bulkUpsert(dto.packages, dto, userId);
   }
 
   @Get('by-hbl/:hbl')

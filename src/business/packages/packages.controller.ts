@@ -16,7 +16,9 @@ import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
 import { UpdatePackageStatusDto } from './dto/update-package-status.dto.js';
+import { BulkUpsertDto } from './dto/bulk-upsert.dto.js';
 import { PackagesService } from './services/packages-crud.service.js';
+import { PackagesUpsertService } from './services/packages-upsert.service.js';
 import { PackageHistoryService } from './services/package-history.service.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 import type { Request } from 'express';
@@ -27,6 +29,7 @@ import type { Request } from 'express';
 export class PackagesController {
   constructor(
     private packages: PackagesService,
+    private packagesUpsert: PackagesUpsertService,
     private packageHistory: PackageHistoryService,
   ) {}
 
@@ -104,6 +107,22 @@ export class PackagesController {
       body.hbls,
       body.statusId,
       body.locationId,
+      userId,
+    );
+  }
+
+  /**
+   * Crea los paquetes que no existen y actualiza los que ya existen (por HBL).
+   * Solo se sobrescriben los campos que vienen con valor.
+   * Roles: los mismos que ven el enlace en el menú lateral.
+   */
+  @Roles('ADMIN', 'OWNER', 'AGENT', 'STOREKEEPER')
+  @Post('bulk-upsert')
+  bulkUpsert(@Body() dto: BulkUpsertDto, @Req() req: Request) {
+    const userId = req.user!.id;
+    return this.packagesUpsert.bulkUpsert(
+      dto.packages,
+      { statusId: dto.statusId, locationId: dto.locationId },
       userId,
     );
   }

@@ -8,7 +8,7 @@ import { BulkAiEntities } from '../dto/business-ia-entity.dto.js';
 export class BusinessService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async resolveOrCreateNamedEntity(
+  async resolveOrCreateNamedEntity(
     model: {
       findFirst(args: {
         where: { name: { contains: string; mode: 'insensitive' } };
